@@ -4,6 +4,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 
 type FilterOptions = {
@@ -17,13 +24,15 @@ type MarketplaceFiltersProps = {
   options: FilterOptions;
 };
 
+const ANY_VALUE = "__any__";
+
 export function MarketplaceFilters({ options }: MarketplaceFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
+    if (value && value !== ANY_VALUE) {
       params.set(key, value);
     } else {
       params.delete(key);
@@ -69,57 +78,65 @@ export function MarketplaceFilters({ options }: MarketplaceFiltersProps) {
 
       <FilterSelect
         label="Country"
-        value={searchParams.get("country") ?? ""}
+        value={searchParams.get("country") ?? ANY_VALUE}
         options={options.countries}
         onChange={(v) => updateParam("country", v)}
       />
 
       <FilterSelect
         label="City"
-        value={searchParams.get("city") ?? ""}
+        value={searchParams.get("city") ?? ANY_VALUE}
         options={options.cities}
         onChange={(v) => updateParam("city", v)}
       />
 
       <FilterSelect
         label="Specialty"
-        value={searchParams.get("specialty") ?? ""}
+        value={searchParams.get("specialty") ?? ANY_VALUE}
         options={options.specialties}
         onChange={(v) => updateParam("specialty", v)}
       />
 
       <FilterSelect
         label="Language"
-        value={searchParams.get("language") ?? ""}
+        value={searchParams.get("language") ?? ANY_VALUE}
         options={options.languages}
         onChange={(v) => updateParam("language", v)}
       />
 
       <div className="space-y-2">
         <Label>Gender</Label>
-        <select
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-          value={searchParams.get("gender") ?? ""}
-          onChange={(e) => updateParam("gender", e.target.value)}
+        <Select
+          value={searchParams.get("gender") ?? ANY_VALUE}
+          onValueChange={(v) => updateParam("gender", v)}
         >
-          <option value="">Any</option>
-          <option value="MALE">Male</option>
-          <option value="FEMALE">Female</option>
-          <option value="OTHER">Other</option>
-        </select>
+          <SelectTrigger>
+            <SelectValue placeholder="Any" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ANY_VALUE}>Any</SelectItem>
+            <SelectItem value="MALE">Male</SelectItem>
+            <SelectItem value="FEMALE">Female</SelectItem>
+            <SelectItem value="OTHER">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
         <Label>Min Rating</Label>
-        <select
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-          value={searchParams.get("minRating") ?? ""}
-          onChange={(e) => updateParam("minRating", e.target.value)}
+        <Select
+          value={searchParams.get("minRating") ?? ANY_VALUE}
+          onValueChange={(v) => updateParam("minRating", v)}
         >
-          <option value="">Any</option>
-          <option value="4">4+ stars</option>
-          <option value="4.5">4.5+ stars</option>
-        </select>
+          <SelectTrigger>
+            <SelectValue placeholder="Any" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ANY_VALUE}>Any</SelectItem>
+            <SelectItem value="4">4+ stars</SelectItem>
+            <SelectItem value="4.5">4.5+ stars</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
@@ -138,17 +155,21 @@ export function MarketplaceFilters({ options }: MarketplaceFiltersProps) {
 
       <div className="space-y-2">
         <Label>Sort By</Label>
-        <select
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+        <Select
           value={searchParams.get("sortBy") ?? "rating"}
-          onChange={(e) => updateParam("sortBy", e.target.value)}
+          onValueChange={(v) => updateParam("sortBy", v)}
         >
-          <option value="rating">Highest Rated</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="price_desc">Price: High to Low</option>
-          <option value="experience">Most Experience</option>
-          <option value="newest">Newest</option>
-        </select>
+          <SelectTrigger>
+            <SelectValue placeholder="Highest Rated" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="rating">Highest Rated</SelectItem>
+            <SelectItem value="price_asc">Price: Low to High</SelectItem>
+            <SelectItem value="price_desc">Price: High to Low</SelectItem>
+            <SelectItem value="experience">Most Experience</SelectItem>
+            <SelectItem value="newest">Newest</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
@@ -170,18 +191,19 @@ function FilterSelect({
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <select
-        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">Any</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
+      <Select value={value || ANY_VALUE} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Any" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ANY_VALUE}>Any</SelectItem>
+          {options.map((opt) => (
+            <SelectItem key={opt} value={opt}>
+              {opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

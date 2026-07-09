@@ -89,6 +89,7 @@ async function resolveTenantRewrite(
     "/marketplace",
     "/pricing",
     "/features",
+    "/about",
     "/onboarding",
     "/developers",
     "/api",
