@@ -1,0 +1,84 @@
+import type { Tenant, TenantTheme, TenantSettings } from "@prisma/client";
+
+export type TenantWithRelations = Tenant & {
+  theme: TenantTheme | null;
+  settings: TenantSettings | null;
+};
+
+export type TenantContext = {
+  tenant: TenantWithRelations;
+  tenantId: string;
+  slug: string;
+};
+
+export type TenantResolutionSource =
+  | "custom_domain"
+  | "subdomain"
+  | "path"
+  | "session";
+
+export type ResolvedTenant = {
+  tenant: TenantWithRelations;
+  source: TenantResolutionSource;
+};
+
+export const PLATFORM_DOMAIN =
+  process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "coachos.app";
+
+export const RESERVED_SLUGS = [
+  "admin",
+  "api",
+  "auth",
+  "dashboard",
+  "portal",
+  "login",
+  "register",
+  "pricing",
+  "features",
+  "about",
+  "contact",
+  "blog",
+  "help",
+  "support",
+  "docs",
+  "status",
+  "app",
+  "www",
+  "marketplace",
+  "onboarding",
+];
+
+export function isReservedSlug(slug: string): boolean {
+  return RESERVED_SLUGS.includes(slug.toLowerCase());
+}
+
+export function extractSubdomain(host: string): string | null {
+  const hostname = host.split(":")[0];
+  const platformDomain = PLATFORM_DOMAIN;
+
+  if (hostname === platformDomain || hostname === `www.${platformDomain}`) {
+    return null;
+  }
+
+  if (hostname.endsWith(`.${platformDomain}`)) {
+    const subdomain = hostname.replace(`.${platformDomain}`, "");
+    if (subdomain && subdomain !== "www") {
+      return subdomain;
+    }
+  }
+
+  return null;
+}
+
+export function buildTenantUrl(slug: string, path = ""): string {
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return `${base}/${slug}${path}`;
+}
+
+export function buildTenantSubdomainUrl(slug: string, path = ""): string {
+  const isDev = process.env.NODE_ENV === "development";
+  if (isDev) {
+    return buildTenantUrl(slug, path);
+  }
+  return `https://${slug}.${PLATFORM_DOMAIN}${path}`;
+}

@@ -1,0 +1,114 @@
+{
+  "common": {
+    "appName": "CoachOS",
+    "tagline": "The Ultimate Operating System for Fitness Coaches",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "viewAll": "View All",
+    "noResults": "No results found",
+    "error": "Something went wrong",
+    "success": "Success"
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "login": "Log In",
+    "register": "Get Started",
+    "dashboard": "Dashboard"
+  },
+  "landing": {
+    "hero": {
+      "title": "The Ultimate Operating System for Fitness Coaches",
+      "subtitle": "Build your brand, manage clients, sell programs, book recovery sessions, and get paid — all from one powerful platform.",
+      "cta": "Start Free Trial",
+      "ctaSecondary": "Watch Demo"
+    },
+    "features": {
+      "title": "Everything You Need to Scale Your Coaching Business",
+      "subtitle": "From website to payments, CoachOS handles it all so you can focus on what matters — your clients.",
+      "website": {
+        "title": "Professional Website",
+        "description": "Launch a stunning, branded website in minutes with our drag-and-drop builder."
+      },
+      "clients": {
+        "title": "Client Management",
+        "description": "Manage unlimited clients, track progress, and deliver personalized programs."
+      },
+      "programs": {
+        "title": "Programs & Plans",
+        "description": "Create and sell workout plans, meal plans, and comprehensive coaching programs."
+      },
+      "recovery": {
+        "title": "Recovery Booking",
+        "description": "Offer massage, ice bath, stretching and more with online booking and payments."
+      },
+      "payments": {
+        "title": "Payments & Billing",
+        "description": "Accept payments via Stripe and Paymob with automated invoicing."
+      },
+      "analytics": {
+        "title": "Analytics & Insights",
+        "description": "Track revenue, bookings, and client progress with powerful dashboards."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Coaching Business?",
+      "subtitle": "Join thousands of coaches already using CoachOS. Start your 14-day free trial today.",
+      "button": "Start Free Trial"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your CoachOS account",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start your 14-day free trial",
+      "name": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "businessName": "Business Name",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "login": "Sign in"
+    }
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "programs": "Programs",
+    "meals": "Meals",
+    "clients": "Clients",
+    "recovery": "Recovery",
+    "bookings": "Bookings",
+    "calendar": "Calendar",
+    "videos": "Videos",
+    "blog": "Blog",
+    "media": "Media",
+    "payments": "Payments",
+    "coupons": "Coupons",
+    "reports": "Reports",
+    "website": "Website",
+    "settings": "Settings",
+    "ai": "AI Assistant"
+  }
+}

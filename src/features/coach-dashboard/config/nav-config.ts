@@ -1,0 +1,84 @@
+import type { TenantModuleKey } from "@prisma/client";
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Dumbbell,
+  UtensilsCrossed,
+  Users,
+  Heart,
+  Calendar,
+  Video,
+  FileText,
+  Image,
+  CreditCard,
+  Tag,
+  BarChart3,
+  Globe,
+  Settings,
+  BookOpen,
+  Sparkles,
+  Store,
+  GraduationCap,
+  ShoppingBag,
+  Award,
+  Trophy,
+  MessageCircle,
+  Zap,
+  Megaphone,
+  Download,
+  FolderOpen,
+} from "lucide-react";
+
+export type NavItem = {
+  key: string;
+  href: string;
+  icon: LucideIcon;
+  module?: TenantModuleKey;
+  labelKey: string;
+};
+
+export const CORE_NAV: NavItem[] = [
+  { key: "overview", href: "/dashboard", icon: LayoutDashboard, labelKey: "overview" },
+];
+
+export const MODULE_NAV: NavItem[] = [
+  { key: "programs", href: "/dashboard/programs", icon: Dumbbell, module: "PROGRAMS", labelKey: "programs" },
+  { key: "meals", href: "/dashboard/meals", icon: UtensilsCrossed, module: "NUTRITION", labelKey: "meals" },
+  { key: "clients", href: "/dashboard/clients", icon: Users, labelKey: "clients" },
+  { key: "recovery", href: "/dashboard/recovery", icon: Heart, module: "RECOVERY", labelKey: "recovery" },
+  { key: "bookings", href: "/dashboard/bookings", icon: BookOpen, module: "BOOKINGS", labelKey: "bookings" },
+  { key: "calendar", href: "/dashboard/calendar", icon: Calendar, module: "BOOKINGS", labelKey: "calendar" },
+  { key: "courses", href: "/dashboard/courses", icon: GraduationCap, module: "COURSES", labelKey: "courses" },
+  { key: "digital-products", href: "/dashboard/digital-products", icon: Download, module: "DIGITAL_PRODUCTS", labelKey: "digitalProducts" },
+  { key: "shop", href: "/dashboard/shop", icon: ShoppingBag, module: "SHOP", labelKey: "shop" },
+  { key: "crm", href: "/dashboard/crm", icon: Users, module: "CRM", labelKey: "crm" },
+  { key: "challenges", href: "/dashboard/challenges", icon: Trophy, module: "CHALLENGES", labelKey: "challenges" },
+  { key: "community", href: "/dashboard/community", icon: MessageCircle, module: "COMMUNITY", labelKey: "community" },
+  { key: "loyalty", href: "/dashboard/loyalty", icon: Award, module: "LOYALTY", labelKey: "loyalty" },
+  { key: "videos", href: "/dashboard/videos", icon: Video, labelKey: "videos" },
+  { key: "blog", href: "/dashboard/blog", icon: FileText, module: "BLOG", labelKey: "blog" },
+  { key: "media", href: "/dashboard/media", icon: Image, labelKey: "media" },
+  { key: "files", href: "/dashboard/files", icon: FolderOpen, labelKey: "files" },
+  { key: "payments", href: "/dashboard/payments", icon: CreditCard, labelKey: "payments" },
+  { key: "coupons", href: "/dashboard/coupons", icon: Tag, labelKey: "coupons" },
+  { key: "reports", href: "/dashboard/reports", icon: BarChart3, module: "REPORTS", labelKey: "reports" },
+  { key: "ai", href: "/dashboard/ai", icon: Sparkles, module: "AI", labelKey: "ai" },
+  { key: "automation", href: "/dashboard/automation", icon: Zap, module: "AUTOMATION", labelKey: "automation" },
+  { key: "marketing", href: "/dashboard/marketing", icon: Megaphone, module: "MARKETING", labelKey: "marketing" },
+  { key: "marketplace", href: "/dashboard/settings/marketplace", icon: Store, module: "MARKETPLACE", labelKey: "marketplace" },
+  { key: "website", href: "/dashboard/website", icon: Globe, labelKey: "website" },
+];
+
+export const SETTINGS_NAV: NavItem[] = [
+  { key: "settings", href: "/dashboard/settings/subscription", icon: Settings, labelKey: "settings" },
+];
+
+export function filterNavByModules(
+  items: NavItem[],
+  enabledModules: Set<TenantModuleKey>
+): NavItem[] {
+  return items.filter((item) => {
+    if (!item.module) return true;
+    return enabledModules.has(item.module);
+  });
+}
