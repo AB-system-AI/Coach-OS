@@ -1,1 +1,11 @@
-export { getCrmStats, getCrmLeads, createCrmLead } from "./services/crm-service";
+export {
+  getCrmStats,
+  getCrmLeads,
+  createCrmLead,
+  getCrmPipeline,
+  moveCrmLead,
+  updateCrmLead,
+  createCrmTask,
+  completeCrmTask,
+  getCrmTasks,
+} from "./services/crm-service";

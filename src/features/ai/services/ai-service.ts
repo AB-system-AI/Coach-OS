@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { AIConversationType } from "@prisma/client";
-import { getPlanLimits, getTenantPlan } from "@/features/subscriptions";
+import { getPlanLimits } from "@/features/subscriptions/types/plan-limits";
+import { getTenantPlan } from "@/features/subscriptions/services/usage-tracker";
 
 export type AIRequest = {
   tenantId: string;

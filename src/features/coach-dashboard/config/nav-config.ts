@@ -146,6 +146,9 @@ export const MODULE_NAV: NavItem[] = [
 
 export const SETTINGS_NAV: NavItem[] = [
   { key: "settings", href: "/dashboard/settings/subscription", icon: Settings, labelKey: "settings" },
+  { key: "branding", href: "/dashboard/settings/branding", icon: Palette, labelKey: "branding" },
+  { key: "domains", href: "/dashboard/settings/domains", icon: Globe, labelKey: "domains" },
+  { key: "security", href: "/dashboard/settings/security", icon: Lock, labelKey: "security" },
 ];
 
 export function filterNavByModules(

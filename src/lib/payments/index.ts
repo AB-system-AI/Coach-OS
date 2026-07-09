@@ -5,69 +5,65 @@ export type PaymentIntentResult = {
   reference: string;
 };
 
-export async function createStripePaymentIntent(input: {
+export {
+  getStripe,
+  createPaymentIntent,
+  createCheckoutSession,
+  createCustomerPortalSession,
+  refundPaymentIntent,
+  constructWebhookEvent,
+  createOrGetStripeCustomer,
+  retrieveSubscription,
+  updateSubscriptionPrice,
+  cancelStripeSubscription,
+  isApplePayReady,
+} from "./stripe";
+
+export {
+  authenticate as authenticatePaymob,
+  createOrder as createPaymobOrder,
+  getPaymentKey as getPaymobPaymentKey,
+  buildIframeUrl,
+  verifyPaymobHmac,
+  createPaymobPayment,
+} from "./paymob";
+
+export type { PaymobPaymentResult } from "./paymob";
+
+/**
+ * Provider-agnostic helper: creates a payment intent (Stripe) or a full Paymob
+ * redirect flow and returns a unified PaymentIntentResult.
+ */
+export async function createProviderPayment(input: {
   amount: number;
   currency: string;
+  provider: "stripe" | "paymob";
   metadata?: Record<string, string>;
+  orderId?: string;
 }): Promise<PaymentIntentResult> {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    return {
-      provider: "stripe",
-      reference: `stripe_demo_${Date.now()}`,
-      clientSecret: "demo_secret_configure_STRIPE_SECRET_KEY",
-    };
-  }
-
-  const res = await fetch("https://api.stripe.com/v1/payment_intents", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      amount: String(Math.round(input.amount * 100)),
-      currency: input.currency.toLowerCase(),
-      "metadata[source]": "coachos",
-      ...Object.fromEntries(
-        Object.entries(input.metadata ?? {}).map(([k, v]) => [`metadata[${k}]`, v])
-      ),
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Stripe payment intent failed");
-  }
-
-  const data = (await res.json()) as { id: string; client_secret: string };
-  return {
-    provider: "stripe",
-    reference: data.id,
-    clientSecret: data.client_secret,
-  };
-}
-
-export async function createPaymobPayment(input: {
-  amount: number;
-  currency: string;
-  orderId: string;
-}): Promise<PaymentIntentResult> {
-  const apiKey = process.env.PAYMOB_API_KEY;
-  if (!apiKey) {
+  if (input.provider === "paymob") {
+    const { createPaymobPayment } = await import("./paymob");
+    const result = await createPaymobPayment({
+      amount: input.amount,
+      currency: input.currency,
+      orderId: input.orderId ?? `order_${Date.now()}`,
+    });
     return {
       provider: "paymob",
-      reference: `paymob_demo_${input.orderId}`,
-      paymentUrl: "https://accept.paymob.com/demo_configure_PAYMOB_API_KEY",
+      paymentUrl: result.paymentUrl,
+      reference: result.reference,
     };
   }
 
+  const { createPaymentIntent } = await import("./stripe");
+  const intent = await createPaymentIntent({
+    amount: input.amount,
+    currency: input.currency,
+    metadata: input.metadata,
+  });
   return {
-    provider: "paymob",
-    reference: input.orderId,
-    paymentUrl: `https://accept.paymob.com/api/acceptance/payments/pay?order=${input.orderId}`,
+    provider: "stripe",
+    clientSecret: intent.client_secret ?? undefined,
+    reference: intent.id,
   };
-}
-
-export function isApplePayReady(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
 }

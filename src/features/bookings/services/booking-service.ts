@@ -87,6 +87,14 @@ export async function getTimeSlots(tenantId: string) {
   });
 }
 
+export async function cancelBooking(tenantId: string, bookingId: string) {
+  await requireTenantAccess(tenantId);
+  return db.booking.update({
+    where: { id: bookingId, tenantId },
+    data: { status: "CANCELLED" },
+  });
+}
+
 export async function getBookingStats(tenantId: string) {
   await requireTenantAccess(tenantId);
   const [upcoming, pending, completed] = await Promise.all([

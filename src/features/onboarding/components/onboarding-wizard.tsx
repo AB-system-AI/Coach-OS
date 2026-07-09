@@ -10,7 +10,7 @@ import {
   getRecommendedModules,
   isPlanSufficient,
 } from "@/features/modules";
-import { PLAN_DEFINITIONS } from "@/features/subscriptions";
+import { PLAN_DEFINITIONS } from "@/features/subscriptions/types/plan-limits";
 import type { BusinessType, SubscriptionPlan, TenantModuleKey } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -1,1 +1,10 @@
-export { getShopStats, getShopProducts, getShopOrders } from "./services/shop-service";
+export {
+  getShopStats,
+  getShopProducts,
+  getShopOrders,
+  createShopProduct,
+  updateShopProduct,
+  adjustInventory,
+  updateOrderStatus,
+  getShopCategories,
+} from "./services/shop-service";

@@ -4,8 +4,18 @@ import {
   isPlatformHost,
   isReservedSlug,
 } from "@/features/tenancy/types";
+import { buildSecurityHeaders } from "@/lib/security/headers";
 
-const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/onboarding"];
+const AUTH_ROUTES = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/magic-link",
+  "/onboarding",
+  "/invite",
+];
 
 const ADMIN_PREFIX = "/admin";
 const DASHBOARD_PREFIX = "/dashboard";
@@ -16,7 +26,9 @@ const STATIC_APP_PATHS = ["/icon", "/apple-icon", "/manifest.json"];
 
 function isAuthRoute(pathname: string): boolean {
   const path = pathname.replace(/^\/(en|ar)/, "") || "/";
-  return AUTH_ROUTES.some((route) => path === route);
+  return AUTH_ROUTES.some(
+    (route) => path === route || path.startsWith(route + "?")
+  );
 }
 
 function isProtectedRoute(pathname: string): boolean {
@@ -44,10 +56,13 @@ export async function middleware(request: NextRequest) {
   // Custom domain / subdomain → rewrite to tenant route
   const tenantRewrite = await resolveTenantRewrite(host, pathname, request.url);
   if (tenantRewrite) {
+    applySecurityHeaders(tenantRewrite);
     return tenantRewrite;
   }
 
-  const sessionCookie = request.cookies.get("better-auth.session_token");
+  const sessionCookie =
+    request.cookies.get("better-auth.session_token") ??
+    request.cookies.get("__Secure-better-auth.session_token");
   const isAuthenticated = !!sessionCookie;
 
   if (isProtectedRoute(pathname) && !isAuthenticated) {
@@ -64,8 +79,16 @@ export async function middleware(request: NextRequest) {
 
   response.headers.set("x-host", host);
   response.headers.set("x-pathname", pathname);
+  applySecurityHeaders(response);
 
   return response;
+}
+
+function applySecurityHeaders(response: NextResponse): void {
+  const headers = buildSecurityHeaders();
+  for (const [key, value] of Object.entries(headers)) {
+    response.headers.set(key, value);
+  }
 }
 
 async function resolveTenantRewrite(
@@ -86,6 +109,11 @@ async function resolveTenantRewrite(
     "/portal",
     "/login",
     "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+    "/magic-link",
+    "/invite",
     "/marketplace",
     "/pricing",
     "/features",

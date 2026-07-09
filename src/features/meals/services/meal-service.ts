@@ -82,6 +82,64 @@ export function calculateMealMacros(meals: { calories?: number | null; protein?:
   );
 }
 
+export async function getMealPlanById(tenantId: string, planId: string) {
+  await requireTenantAccess(tenantId);
+  return db.mealPlan.findFirst({
+    where: { id: planId, tenantId },
+    include: {
+      meals: { orderBy: { mealType: "asc" } },
+      program: { select: { name: true } },
+    },
+  });
+}
+
+export async function updateMealPlan(
+  tenantId: string,
+  planId: string,
+  data: Partial<{ name: string; description: string; isTemplate: boolean }>
+) {
+  await requireTenantAccess(tenantId);
+  return db.mealPlan.update({ where: { id: planId, tenantId }, data });
+}
+
+export async function deleteMealPlan(tenantId: string, planId: string) {
+  await requireTenantAccess(tenantId);
+  await db.mealPlan.delete({ where: { id: planId, tenantId } });
+}
+
+export async function addMealSecure(
+  tenantId: string,
+  mealPlanId: string,
+  data: {
+    name: string;
+    mealType: string;
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  }
+) {
+  await requireTenantAccess(tenantId);
+  const plan = await db.mealPlan.findFirst({ where: { id: mealPlanId, tenantId } });
+  if (!plan) throw new Error("Meal plan not found");
+  return db.meal.create({ data: { mealPlanId, ...data } });
+}
+
+export async function deleteMeal(tenantId: string, mealId: string) {
+  await requireTenantAccess(tenantId);
+  const meal = await db.meal.findFirst({
+    where: { id: mealId },
+    include: { mealPlan: { select: { tenantId: true } } },
+  });
+  if (!meal || meal.mealPlan.tenantId !== tenantId) throw new Error("Meal not found");
+  await db.meal.delete({ where: { id: mealId } });
+}
+
+export async function deleteRecipe(tenantId: string, recipeId: string) {
+  await requireTenantAccess(tenantId);
+  await db.recipe.delete({ where: { id: recipeId, tenantId } });
+}
+
 export async function getMealStats(tenantId: string) {
   await requireTenantAccess(tenantId);
   const [plans, recipes] = await Promise.all([

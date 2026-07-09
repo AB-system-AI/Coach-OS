@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { requireTenantAccess } from "@/lib/auth/session";
-import { assertFeature } from "@/features/subscriptions";
+import { assertFeature } from "@/features/subscriptions/services/usage-tracker";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 

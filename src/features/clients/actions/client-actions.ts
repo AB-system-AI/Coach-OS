@@ -6,6 +6,7 @@ import {
   createClient,
   updateClient,
   addClientNote,
+  addClientFile,
 } from "@/features/clients/services/client-service";
 import type { ClientGoalType, ClientSubscriptionStatus } from "@prisma/client";
 
@@ -48,5 +49,15 @@ export async function addClientNoteAction(
 ) {
   const { session } = await requireTenantAccess(tenantId);
   await addClientNote(tenantId, clientId, session.user.id, content);
+  revalidatePath(`/dashboard/clients/${clientId}`);
+}
+
+export async function addClientFileAction(
+  tenantId: string,
+  clientId: string,
+  data: { name: string; url: string; mimeType?: string; sizeBytes?: number }
+) {
+  await requireTenantAccess(tenantId);
+  await addClientFile(tenantId, clientId, data);
   revalidatePath(`/dashboard/clients/${clientId}`);
 }

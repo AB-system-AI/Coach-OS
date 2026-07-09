@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "anonymous";
-  if (!checkRateLimit(`api:courses:${ip}`).allowed) {
+  if (!(await checkRateLimit(`api:courses:${ip}`)).allowed) {
     return apiError("Rate limit exceeded", 429);
   }
 

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { getPlanLimits, getTenantPlan } from "@/features/subscriptions";
+import { getPlanLimits } from "@/features/subscriptions/types/plan-limits";
+import { getTenantPlan } from "@/features/subscriptions/services/usage-tracker";
 import type { MediaCategory } from "@prisma/client";
 
 export async function getStorageUsage(tenantId: string) {

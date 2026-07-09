@@ -10,3 +10,4 @@ export {
   getSystemHealthMetrics,
 } from "./services/stats-service";
 export type { ModuleStat } from "./services/stats-service";
+export * from "./services/enterprise-crud-service";

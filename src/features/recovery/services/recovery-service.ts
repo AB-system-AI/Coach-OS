@@ -32,6 +32,59 @@ export async function createRecoveryService(
   });
 }
 
+export async function updateRecoveryService(
+  tenantId: string,
+  serviceId: string,
+  data: Partial<{
+    name: string;
+    description: string;
+    duration: number;
+    price: number;
+    capacity: number;
+    isActive: boolean;
+  }>
+) {
+  await requireTenantAccess(tenantId);
+  return db.recoveryService.update({ where: { id: serviceId, tenantId }, data });
+}
+
+export async function deleteRecoveryService(tenantId: string, serviceId: string) {
+  await requireTenantAccess(tenantId);
+  await db.recoveryService.delete({ where: { id: serviceId, tenantId } });
+}
+
+export async function getRecoveryPackages(tenantId: string) {
+  await requireTenantAccess(tenantId);
+  return db.recoveryPackage.findMany({
+    where: { tenantId },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function createRecoveryPackage(
+  tenantId: string,
+  data: { name: string; description?: string; sessions: number; price: number; validityDays?: number }
+) {
+  await requireTenantAccess(tenantId);
+  return db.recoveryPackage.create({
+    data: { tenantId, ...data, isActive: true },
+  });
+}
+
+export async function updateRecoveryPackage(
+  tenantId: string,
+  packageId: string,
+  data: Partial<{ name: string; sessions: number; price: number; isActive: boolean }>
+) {
+  await requireTenantAccess(tenantId);
+  return db.recoveryPackage.update({ where: { id: packageId, tenantId }, data });
+}
+
+export async function deleteRecoveryPackage(tenantId: string, packageId: string) {
+  await requireTenantAccess(tenantId);
+  await db.recoveryPackage.delete({ where: { id: packageId, tenantId } });
+}
+
 export async function getRecoveryStats(tenantId: string) {
   await requireTenantAccess(tenantId);
   const [services, packages] = await Promise.all([

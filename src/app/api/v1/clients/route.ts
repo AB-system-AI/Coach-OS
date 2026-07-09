@@ -9,7 +9,7 @@ import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "anonymous";
-  const limit = checkRateLimit(`api:clients:${ip}`);
+  const limit = await checkRateLimit(`api:clients:${ip}`);
 
   if (!limit.allowed) {
     return apiError("Rate limit exceeded", 429);

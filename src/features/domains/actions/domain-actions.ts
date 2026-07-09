@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { requireTenantAccess } from "@/lib/auth/session";
-import { assertFeature } from "@/features/subscriptions";
+import { assertFeature } from "@/features/subscriptions/services/usage-tracker";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { randomBytes } from "crypto";
@@ -46,7 +46,29 @@ export async function verifyCustomDomain(tenantId: string, domainId: string) {
   });
   if (!domain) throw new Error("Domain not found");
 
-  // Production: verify DNS CNAME record points to platform
+  // Real DNS verification: check TXT record for verification token
+  let dnsVerified = false;
+  try {
+    const { promises: dns } = await import("dns");
+    const txtRecords = await dns.resolveTxt(`_coachos-verify.${domain.domain}`).catch(() => []);
+    const flatRecords = txtRecords.flat();
+    dnsVerified = flatRecords.some((r) => r.includes(domain.verificationToken));
+
+    if (!dnsVerified) {
+      // Fallback: check CNAME points to our platform
+      const cname = await dns.resolveCname(domain.domain).catch(() => []);
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+      const platformHost = new URL(appUrl.startsWith("http") ? appUrl : `https://${appUrl}`).hostname;
+      dnsVerified = cname.some((c) => c.includes(platformHost));
+    }
+  } catch {
+    // DNS lookup failed — proceed with forced verify if called from admin context
+  }
+
+  if (!dnsVerified && process.env.NODE_ENV === "production") {
+    throw new Error("DNS records not found. Add the TXT or CNAME record and try again.");
+  }
+
   const verified = await db.customDomain.update({
     where: { id: domainId },
     data: {

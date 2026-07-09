@@ -5,12 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { CreateInvoiceForm } from "./_components/create-invoice-form";
+import { RefundButton } from "./_components/refund-button";
+import { markInvoicePaidAction } from "@/features/payments/actions/payment-actions";
+import { Button } from "@/components/ui/button";
 
 export default async function PaymentsPage() {
   const tenant = await getCurrentTenant();
   if (!tenant) redirect("/register");
 
-  const [payments, invoices, stats] = await Promise.all([
+  const [{ items: payments }, invoices, stats] = await Promise.all([
     getPayments(tenant.id),
     getInvoices(tenant.id),
     getPaymentStats(tenant.id),
@@ -20,45 +24,93 @@ export default async function PaymentsPage() {
     <div className="space-y-8">
       <ModuleOverview
         title="Payments & Billing"
-        description="Stripe, Paymob, Apple Pay ready. Subscriptions, programs, bookings, and products."
+        description="Stripe, Paymob, Apple Pay ready. Manage payments, invoices, and refunds."
         stats={[
           { label: "Revenue (month)", value: formatCurrency(stats.revenue) },
           { label: "Pending", value: stats.pending },
           { label: "Invoices", value: stats.invoices },
+          { label: "Active Coupons", value: stats.coupons },
         ]}
         actions={[{ label: "Coupons", href: "/dashboard/coupons" }]}
       />
+
       <div className="flex flex-wrap gap-2">
-        {["Stripe", "Paymob", "Apple Pay", "Wallet", "Invoices", "Receipts"].map((f) => (
+        {["Stripe", "Paymob", "Apple Pay", "Invoices", "Refunds", "Receipts"].map((f) => (
           <Badge key={f} variant="secondary">{f}</Badge>
         ))}
       </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Payments list */}
         <Card>
-          <CardHeader><CardTitle>Payments</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Payments</CardTitle>
+          </CardHeader>
           <CardContent className="divide-y">
-            {payments.slice(0, 10).map((p) => (
-              <div key={p.id} className="flex justify-between py-3 text-sm">
-                <span>{p.user.name}</span>
-                <span>
-                  {formatCurrency(Number(p.amount))} · <Badge variant="outline">{p.status}</Badge>
-                </span>
+            {payments.length === 0 && (
+              <p className="text-muted-foreground py-4 text-sm">No payments yet.</p>
+            )}
+            {payments.slice(0, 20).map((p) => (
+              <div key={p.id} className="py-3 space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">{p.user.name}</span>
+                  <span className="flex items-center gap-2">
+                    {formatCurrency(Number(p.amount), p.currency)}
+                    <Badge variant="outline">{p.status}</Badge>
+                  </span>
+                </div>
+                {p.description && (
+                  <p className="text-xs text-muted-foreground">{p.description}</p>
+                )}
+                {p.status === "COMPLETED" && p.provider === "STRIPE" && (
+                  <RefundButton
+                    paymentId={p.id}
+                    maxAmount={Number(p.amount)}
+                    currency={p.currency}
+                  />
+                )}
               </div>
             ))}
           </CardContent>
         </Card>
+
+        {/* Invoices */}
         <Card>
-          <CardHeader><CardTitle>Invoices</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle>Invoices</CardTitle>
+            <CreateInvoiceForm />
+          </CardHeader>
           <CardContent className="divide-y">
-            {invoices.slice(0, 10).map((inv) => (
-              <div key={inv.id} className="flex justify-between py-3 text-sm">
-                <span>{inv.invoiceNumber}</span>
-                <Badge variant="outline">{inv.status}</Badge>
-              </div>
-            ))}
             {invoices.length === 0 && (
               <p className="text-muted-foreground py-4 text-sm">No invoices yet.</p>
             )}
+            {invoices.slice(0, 15).map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between py-3 gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-mono font-medium">{inv.invoiceNumber}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(Number(inv.amount), inv.currency)}
+                    {inv.dueDate &&
+                      ` · Due ${new Date(inv.dueDate).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline">{inv.status}</Badge>
+                  {inv.status === "DRAFT" || inv.status === "SENT" ? (
+                    <form
+                      action={async () => {
+                        "use server";
+                        await markInvoicePaidAction(inv.id);
+                      }}
+                    >
+                      <Button type="submit" size="sm" variant="ghost">
+                        Mark Paid
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>

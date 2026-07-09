@@ -11,4 +11,5 @@ export {
   createClientAction,
   updateClientAction,
   addClientNoteAction,
+  addClientFileAction,
 } from "./actions/client-actions";

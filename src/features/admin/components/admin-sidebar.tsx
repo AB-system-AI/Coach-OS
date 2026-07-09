@@ -17,15 +17,21 @@ import {
   Flag,
   LogOut,
   Shield,
+  UserCog,
+  Database,
+  Store,
 } from "lucide-react";
 
 const adminNav = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Coaches", href: "/admin/coaches", icon: Users },
+  { label: "Users", href: "/admin/users", icon: UserCog },
   { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { label: "Marketplace", href: "/admin/marketplace", icon: Store },
   { label: "Domains", href: "/admin/domains", icon: Globe },
   { label: "Storage", href: "/admin/storage", icon: HardDrive },
+  { label: "Backups", href: "/admin/backups", icon: Database },
   { label: "Logs", href: "/admin/logs", icon: ScrollText },
   { label: "Support", href: "/admin/support", icon: HeadphonesIcon },
   { label: "Announcements", href: "/admin/announcements", icon: Megaphone },

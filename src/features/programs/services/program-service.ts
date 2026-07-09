@@ -218,3 +218,98 @@ export async function updateProgramStatus(
     data: { status },
   });
 }
+
+export async function updateProgram(
+  tenantId: string,
+  programId: string,
+  data: Partial<{
+    name: string;
+    description: string;
+    durationWeeks: number;
+    price: number;
+    isTemplate: boolean;
+    status: ProgramStatus;
+  }>,
+  userId?: string
+) {
+  await requireTenantAccess(tenantId);
+  const updated = await db.program.update({
+    where: { id: programId, tenantId },
+    data: {
+      ...data,
+      ...(data.name ? { slug: `${slugify(data.name)}-${Date.now().toString(36)}` } : {}),
+    },
+  });
+  await writeAuditLog({ tenantId, userId, action: "UPDATE", entity: "Program", entityId: programId });
+  return updated;
+}
+
+export async function deleteProgram(tenantId: string, programId: string, userId?: string) {
+  await requireTenantAccess(tenantId);
+  await db.program.delete({ where: { id: programId, tenantId } });
+  await writeAuditLog({ tenantId, userId, action: "DELETE", entity: "Program", entityId: programId });
+}
+
+export async function deleteWorkoutPlan(tenantId: string, planId: string) {
+  await requireTenantAccess(tenantId);
+  const plan = await db.workoutPlan.findFirst({ where: { id: planId, tenantId } });
+  if (!plan) throw new Error("Workout plan not found");
+  await db.workoutPlan.delete({ where: { id: planId } });
+}
+
+export async function updateWorkoutExercise(
+  tenantId: string,
+  exerciseId: string,
+  data: Partial<{
+    name: string;
+    muscleGroup: string;
+    sets: number;
+    reps: string;
+    weight: string;
+    restSeconds: number;
+    notes: string;
+    videoUrl: string;
+    imageUrl: string;
+    order: number;
+  }>
+) {
+  await requireTenantAccess(tenantId);
+  const ex = await db.workoutExercise.findFirst({
+    where: { id: exerciseId },
+    include: { workoutPlan: { select: { tenantId: true } } },
+  });
+  if (!ex || ex.workoutPlan.tenantId !== tenantId) throw new Error("Exercise not found");
+  return db.workoutExercise.update({ where: { id: exerciseId }, data });
+}
+
+export async function deleteWorkoutExercise(tenantId: string, exerciseId: string) {
+  await requireTenantAccess(tenantId);
+  const ex = await db.workoutExercise.findFirst({
+    where: { id: exerciseId },
+    include: { workoutPlan: { select: { tenantId: true } } },
+  });
+  if (!ex || ex.workoutPlan.tenantId !== tenantId) throw new Error("Exercise not found");
+  await db.workoutExercise.delete({ where: { id: exerciseId } });
+}
+
+export async function addWorkoutExerciseSecure(
+  tenantId: string,
+  workoutPlanId: string,
+  data: {
+    name: string;
+    muscleGroup?: string;
+    sets?: number;
+    reps?: string;
+    weight?: string;
+    restSeconds?: number;
+    notes?: string;
+    videoUrl?: string;
+    imageUrl?: string;
+    order?: number;
+  }
+) {
+  await requireTenantAccess(tenantId);
+  const plan = await db.workoutPlan.findFirst({ where: { id: workoutPlanId, tenantId } });
+  if (!plan) throw new Error("Workout plan not found");
+  return db.workoutExercise.create({ data: { workoutPlanId, ...data } });
+}

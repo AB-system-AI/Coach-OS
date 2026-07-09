@@ -1,1 +1,7 @@
-export { getAutomationRules, triggerAutomation } from "./services/automation-service";
+export {
+  getAutomationRules,
+  triggerAutomation,
+  createAutomationRule,
+  toggleAutomationRule,
+  deleteAutomationRule,
+} from "./services/automation-service";
