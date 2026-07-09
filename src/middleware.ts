@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import createMiddleware from "next-intl/middleware";
-import { routing } from "@/i18n/routing";
 import {
   extractSubdomain,
   isPlatformHost,
   isReservedSlug,
 } from "@/features/tenancy/types";
-
-const intlMiddleware = createMiddleware(routing);
 
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/onboarding"];
 
@@ -64,7 +60,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  const response = intlMiddleware(request);
+  const response = NextResponse.next();
 
   response.headers.set("x-host", host);
   response.headers.set("x-pathname", pathname);
