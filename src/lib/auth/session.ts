@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { getAuth } from "@/lib/auth";
+import { db, assertDatabaseConfigured } from "@/lib/db";
 import type { UserRole } from "@prisma/client";
 
 export async function getSession() {
-  const session = await auth.api.getSession({
+  const session = await getAuth().api.getSession({
     headers: await headers(),
   });
   return session;
@@ -19,6 +19,7 @@ export async function requireAuth() {
 }
 
 export async function requireRole(...roles: UserRole[]) {
+  assertDatabaseConfigured();
   const session = await requireAuth();
   const user = await db.user.findUnique({
     where: { id: session.user.id },
@@ -33,6 +34,7 @@ export async function requireRole(...roles: UserRole[]) {
 }
 
 export async function requireTenantAccess(tenantId: string) {
+  assertDatabaseConfigured();
   const session = await requireAuth();
   const user = await db.user.findUnique({
     where: { id: session.user.id },
@@ -57,6 +59,7 @@ export async function requireTenantAccess(tenantId: string) {
 }
 
 export async function getCurrentTenant() {
+  assertDatabaseConfigured();
   const session = await getSession();
   if (!session?.user) return null;
 

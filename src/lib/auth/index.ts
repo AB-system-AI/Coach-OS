@@ -1,51 +1,65 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { db } from "@/lib/db";
+import {
+  getTrustedOrigins,
+  resolveAuthSecret,
+  resolveAuthUrl,
+} from "@/lib/env";
 
-export const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL,
-  database: prismaAdapter(db, {
-    provider: "postgresql",
-  }),
-  emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 8,
-  },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-      enabled: !!(
-        process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ),
+function createAuth() {
+  return betterAuth({
+    secret: resolveAuthSecret(),
+    baseURL: resolveAuthUrl(),
+    database: prismaAdapter(db, {
+      provider: "postgresql",
+    }),
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 8,
     },
-  },
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // 1 day
-  },
-  user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "CLIENT",
-        input: false,
-      },
-      locale: {
-        type: "string",
-        defaultValue: "en",
-      },
-      timezone: {
-        type: "string",
-        defaultValue: "UTC",
+    socialProviders: {
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        enabled: !!(
+          process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+        ),
       },
     },
-  },
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  ],
-});
+    session: {
+      expiresIn: 60 * 60 * 24 * 7,
+      updateAge: 60 * 60 * 24,
+    },
+    user: {
+      additionalFields: {
+        role: {
+          type: "string",
+          defaultValue: "CLIENT",
+          input: false,
+        },
+        locale: {
+          type: "string",
+          defaultValue: "en",
+        },
+        timezone: {
+          type: "string",
+          defaultValue: "UTC",
+        },
+      },
+    },
+    trustedOrigins: getTrustedOrigins(),
+  });
+}
 
-export type Session = typeof auth.$Infer.Session;
-export type User = typeof auth.$Infer.Session.user;
+let authInstance: ReturnType<typeof createAuth> | undefined;
+
+export function getAuth() {
+  if (!authInstance) {
+    authInstance = createAuth();
+  }
+  return authInstance;
+}
+
+export type Session = ReturnType<typeof getAuth>["$Infer"]["Session"];
+export type User = ReturnType<typeof getAuth>["$Infer"]["Session"]["user"];

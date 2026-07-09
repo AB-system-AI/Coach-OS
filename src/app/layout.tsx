@@ -59,6 +59,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/** App uses auth + database on most routes; skip static prerender at build time. */
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: {
