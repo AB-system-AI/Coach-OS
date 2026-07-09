@@ -461,6 +461,37 @@ enum ProgramStatus {
   ARCHIVED
 }
 
+enum ClientSubscriptionStatus {
+  ACTIVE
+  PAUSED
+  EXPIRED
+  CANCELLED
+}
+
+enum ClientGoalType {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  FITNESS
+  MAINTENANCE
+  CUSTOM
+}
+
+enum WeeklyCheckInStatus {
+  PENDING
+  REVIEWED
+}
+
+enum ClientActivityType {
+  ENROLLMENT
+  BOOKING
+  PAYMENT
+  CHECK_IN
+  PROGRESS
+  NOTE
+  MESSAGE
+  PROGRAM_ASSIGNED
+}
+
 enum DayOfWeek {
   MONDAY
   TUESDAY
@@ -630,6 +661,7 @@ model Tenant {
   chatRooms        ChatRoom[]
   reviews          Review[]
   faqs             Faq[]
+  supportTickets   SupportTicket[]
   analyticsEvents  AnalyticsEvent[]
   auditLogs        AuditLog[]
   marketplaceProfile CoachMarketplaceProfile?
@@ -907,8 +939,12 @@ model ClientProfile {
   gender        String?
   height        Float?    // cm
   goals         String?
+  goalType      ClientGoalType?
   medicalNotes  String?
   emergencyContact String?
+  subscriptionStatus ClientSubscriptionStatus @default(ACTIVE)
+  subscriptionStartDate DateTime?
+  subscriptionEndDate DateTime?
   isActive      Boolean   @default(true)
   joinedAt      DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -917,9 +953,90 @@ model ClientProfile {
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   attendanceRecords AttendanceRecord[]
   membershipCards   MembershipCard[]
+  notes         ClientNote[]
+  files         ClientFile[]
+  activities    ClientActivity[]
+  weeklyCheckIns WeeklyCheckIn[]
 
   @@index([tenantId])
   @@map("client_profiles")
+}
+
+model ClientNote {
+  id        String   @id @default(cuid())
+  tenantId  String
+  clientId  String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client    ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@map("client_notes")
+}
+
+model ClientFile {
+  id        String   @id @default(cuid())
+  tenantId  String
+  clientId  String
+  name      String
+  url       String
+  mimeType  String?
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  client    ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@map("client_files")
+}
+
+model ClientActivity {
+  id          String             @id @default(cuid())
+  tenantId    String
+  clientId    String
+  type        ClientActivityType
+  title       String
+  description String?
+  metadata    Json               @default("{}")
+  createdAt   DateTime           @default(now())
+
+  client      ClientProfile      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@index([createdAt])
+  @@map("client_activities")
+}
+
+model WeeklyCheckIn {
+  id              String              @id @default(cuid())
+  tenantId        String
+  clientId        String
+  userId          String
+  weekStartDate   DateTime
+  weight          Float?
+  bodyFatPercent  Float?
+  adherenceScore  Int?
+  programRating   Int?
+  notes           String?
+  coachReply      String?
+  coachRepliedAt  DateTime?
+  photoUrls       String[]            @default([])
+  status          WeeklyCheckInStatus @default(PENDING)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  client          ClientProfile       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@index([weekStartDate])
+  @@map("weekly_check_ins")
 }
 
 // ============================================================
@@ -938,6 +1055,7 @@ model Program {
   durationWeeks   Int?
   status          ProgramStatus @default(DRAFT)
   isPublic        Boolean       @default(false)
+  isTemplate      Boolean       @default(false)
   features        String[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -996,12 +1114,15 @@ model WorkoutExercise {
   id            String  @id @default(cuid())
   workoutPlanId String
   name          String
+  muscleGroup   String?
   sets          Int?
   reps          String?
   weight        String?
   restSeconds   Int?
   notes         String?
   videoUrl      String?
+  imageUrl      String?
+  exerciseVideoId String?
   order         Int     @default(0)
 
   workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
@@ -1020,6 +1141,9 @@ model ExerciseVideo {
   category    String?
   muscleGroup String?
   equipment   String?
+  level       String?
+  commonMistakes String?
+  tips        String?
   duration    Int?     // seconds
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1041,6 +1165,7 @@ model MealPlan {
   name        String
   description String?
   dayNumber   Int?
+  isTemplate  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1506,6 +1631,7 @@ model AuditLog {
 
 model SupportTicket {
   id          String                @id @default(cuid())
+  tenantId    String?
   creatorId   String
   assigneeId  String?
   subject     String
@@ -1518,7 +1644,9 @@ model SupportTicket {
 
   creator     User                  @relation("TicketCreator", fields: [creatorId], references: [id])
   assignee    User?                 @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  tenant      Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@index([status])
   @@map("support_tickets")
 }

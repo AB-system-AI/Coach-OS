@@ -57,6 +57,29 @@ export async function GET() {
       "/mobile/react-native": {
         get: { summary: "React Native SDK endpoints" },
       },
+      "/programs": {
+        get: { summary: "List programs" },
+        post: { summary: "Create program" },
+      },
+      "/exercises": {
+        get: { summary: "Exercise library" },
+        post: { summary: "Add exercise" },
+      },
+      "/bookings": {
+        get: { summary: "List bookings" },
+        post: { summary: "Create booking" },
+      },
+      "/payments": {
+        get: { summary: "List payments" },
+        post: { summary: "Create payment" },
+      },
+      "/progress": {
+        get: { summary: "Progress and check-ins" },
+        post: { summary: "Submit weekly check-in" },
+      },
+      "/ai": {
+        post: { summary: "AI coach assistant" },
+      },
     },
   };
 

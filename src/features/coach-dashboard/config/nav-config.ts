@@ -53,6 +53,7 @@ import {
   Smartphone,
   TabletSmartphone,
   LineChart,
+  TrendingUp,
 } from "lucide-react";
 import type { TenantModuleKey } from "@prisma/client";
 import type { LucideIcon } from "lucide-react";
@@ -111,6 +112,7 @@ export const MODULE_NAV: NavItem[] = [
   { key: "programs", href: "/dashboard/programs", icon: Dumbbell, module: "PROGRAMS", labelKey: "programs" },
   { key: "meals", href: "/dashboard/meals", icon: UtensilsCrossed, module: "NUTRITION", labelKey: "meals" },
   { key: "clients", href: "/dashboard/clients", icon: Users, labelKey: "clients" },
+  { key: "progress", href: "/dashboard/progress", icon: TrendingUp, labelKey: "progress" },
   { key: "recovery", href: "/dashboard/recovery", icon: Heart, module: "RECOVERY", labelKey: "recovery" },
   { key: "bookings", href: "/dashboard/bookings", icon: BookOpen, module: "BOOKINGS", labelKey: "bookings" },
   { key: "calendar", href: "/dashboard/calendar", icon: Calendar, module: "BOOKINGS", labelKey: "calendar" },

@@ -39,4 +39,24 @@ export async function getCourseStats(tenantId: string) {
   return { total, published, enrollments };
 }
 
+export async function issueCertificate(enrollmentId: string) {
+  const enrollment = await db.courseEnrollment.findUnique({
+    where: { id: enrollmentId },
+    include: { course: true },
+  });
+  if (!enrollment || enrollment.progress < 100) {
+    throw new Error("Course not completed");
+  }
+
+  const certificateUrl = `/certificates/${enrollment.id}.pdf`;
+
+  return db.courseEnrollment.update({
+    where: { id: enrollmentId },
+    data: {
+      certificateUrl,
+      completedAt: enrollment.completedAt ?? new Date(),
+    },
+  });
+}
+
 export type { CourseStatus };

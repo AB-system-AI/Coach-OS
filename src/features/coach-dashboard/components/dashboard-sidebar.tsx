@@ -16,6 +16,8 @@ import { Dumbbell, LogOut, Menu, X } from "lucide-react";
 import { useState, useMemo } from "react";
 
 const LABEL_FALLBACKS: Record<string, string> = {
+  clients: "Clients",
+  progress: "Progress",
   courses: "Courses",
   shop: "Shop",
   crm: "CRM",
