@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
-import { extractSubdomain, isReservedSlug } from "@/features/tenancy/types";
+import {
+  extractSubdomain,
+  isPlatformHost,
+  isReservedSlug,
+} from "@/features/tenancy/types";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -11,6 +15,8 @@ const ADMIN_PREFIX = "/admin";
 const DASHBOARD_PREFIX = "/dashboard";
 const PORTAL_PREFIX = "/portal";
 const API_PREFIX = "/api";
+
+const STATIC_APP_PATHS = ["/icon", "/apple-icon", "/manifest.json"];
 
 function isAuthRoute(pathname: string): boolean {
   const path = pathname.replace(/^\/(en|ar)/, "") || "/";
@@ -33,7 +39,8 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith(API_PREFIX) ||
     pathname.startsWith("/_next") ||
-    pathname.includes(".")
+    pathname.includes(".") ||
+    STATIC_APP_PATHS.includes(pathname)
   ) {
     return NextResponse.next();
   }
@@ -70,11 +77,12 @@ async function resolveTenantRewrite(
   pathname: string,
   baseUrl: string
 ): Promise<NextResponse | null> {
-  const platformDomain =
-    process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "coachos.app";
   const hostname = host.split(":")[0].toLowerCase();
 
-  // Skip platform routes
+  if (isPlatformHost(hostname)) {
+    return null;
+  }
+
   const cleanPath = pathname.replace(/^\/(en|ar)/, "") || "/";
   const platformPrefixes = [
     "/admin",
@@ -86,15 +94,12 @@ async function resolveTenantRewrite(
     "/pricing",
     "/features",
     "/onboarding",
+    "/developers",
     "/api",
   ];
-  if (platformPrefixes.some((p) => cleanPath.startsWith(p)) || cleanPath === "/") {
-    // Only rewrite root on custom domains, not platform home
-    const isPlatformHost =
-      hostname === "localhost" ||
-      hostname.endsWith(platformDomain) ||
-      hostname === platformDomain;
-    if (isPlatformHost) return null;
+
+  if (platformPrefixes.some((p) => cleanPath.startsWith(p))) {
+    return null;
   }
 
   let slug: string | null = null;
@@ -105,16 +110,8 @@ async function resolveTenantRewrite(
   }
 
   if (!slug) {
-    const isPlatformHost =
-      hostname === "localhost" ||
-      hostname.endsWith(platformDomain) ||
-      hostname === platformDomain;
-    if (!isPlatformHost) {
-      slug = hostname;
-    }
+    slug = hostname;
   }
-
-  if (!slug) return null;
 
   const pathSegments = cleanPath.split("/").filter(Boolean);
   if (
@@ -134,6 +131,6 @@ async function resolveTenantRewrite(
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|icons|images|manifest.json).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|icon|apple-icon|icons|images|manifest.json).*)",
   ],
 };
