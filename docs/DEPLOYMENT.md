@@ -110,10 +110,10 @@ Vercel uses `vercel.json` and `package.json`:
 
 In **Project → Settings → Environment Variables**, add for **Production**, **Preview**, and **Development**:
 
-- `DATABASE_URL`
-- `BETTER_AUTH_SECRET`
-- `BETTER_AUTH_URL` — e.g. `https://your-project.vercel.app`
-- `NEXT_PUBLIC_APP_URL` — same as `BETTER_AUTH_URL`
+- `DATABASE_URL` (**required**)
+- `BETTER_AUTH_SECRET` (**required**, ≥32 characters)
+- `BETTER_AUTH_URL` — e.g. `https://your-project.vercel.app` (falls back to `VERCEL_URL` if unset)
+- `NEXT_PUBLIC_APP_URL` — same as `BETTER_AUTH_URL` (recommended so the browser auth client matches)
 
 Add optional keys from `.env.example` as needed.
 

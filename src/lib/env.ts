@@ -22,6 +22,19 @@ export function isProduction(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
+function normalizeOrigin(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
+/** Prefer https for Vercel-provided hostnames (VERCEL_URL has no protocol). */
+function originFromHost(host: string): string {
+  const trimmed = host.trim().replace(/\/$/, "");
+  if (/^https?:\/\//i.test(trimmed)) {
+    return normalizeOrigin(trimmed);
+  }
+  return `https://${trimmed}`;
+}
+
 export function resolveDatabaseUrl(): string {
   const url = process.env.DATABASE_URL?.trim();
   if (url) return url;
@@ -78,12 +91,23 @@ export function resolveAuthSecret(): string {
 }
 
 export function resolveAuthUrl(): string {
-  const url =
+  const explicit =
     process.env.BETTER_AUTH_URL?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim();
 
-  if (url) {
-    return url.replace(/\/$/, "");
+  if (explicit) {
+    return normalizeOrigin(explicit);
+  }
+
+  // Vercel injects these automatically — use them when explicit URLs are unset.
+  const vercelProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercelProduction) {
+    return originFromHost(vercelProduction);
+  }
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) {
+    return originFromHost(vercelUrl);
   }
 
   if (isNextBuild()) {
@@ -104,17 +128,28 @@ export function resolveAuthUrl(): string {
 
 export function resolvePublicAppUrl(): string {
   const url = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (url) return url.replace(/\/$/, "");
+  if (url) return normalizeOrigin(url);
   return resolveAuthUrl();
 }
 
 export function getTrustedOrigins(): string[] {
   const origins = new Set<string>();
-  const authUrl = process.env.BETTER_AUTH_URL?.trim();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
-  if (authUrl) origins.add(authUrl.replace(/\/$/, ""));
-  if (appUrl) origins.add(appUrl.replace(/\/$/, ""));
+  const candidates = [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? originFromHost(process.env.VERCEL_PROJECT_PRODUCTION_URL)
+      : undefined,
+    process.env.VERCEL_URL
+      ? originFromHost(process.env.VERCEL_URL)
+      : undefined,
+  ];
+
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (value) origins.add(normalizeOrigin(value));
+  }
 
   if (origins.size === 0) {
     origins.add(resolveAuthUrl());
