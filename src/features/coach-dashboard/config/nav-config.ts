@@ -1,5 +1,3 @@
-import type { TenantModuleKey } from "@prisma/client";
-import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Dumbbell,
@@ -27,7 +25,38 @@ import {
   Megaphone,
   Download,
   FolderOpen,
+  Wallet,
+  UserCog,
+  ScanLine,
+  CalendarDays,
+  FileInput,
+  Workflow,
+  Mic,
+  FolderTree,
+  ShieldCheck,
+  HardDrive,
+  Palette,
+  LayoutTemplate,
+  Mail,
+  Receipt,
+  Plug,
+  Gamepad2,
+  Layers,
+  Building2,
+  ShoppingCart,
+  Package,
+  Banknote,
+  Share2,
+  Bell,
+  LifeBuoy,
+  Lock,
+  Smartphone,
+  TabletSmartphone,
+  LineChart,
 } from "lucide-react";
+import type { TenantModuleKey } from "@prisma/client";
+import type { LucideIcon } from "lucide-react";
+import { ENTERPRISE_MODULE_PAGES } from "@/features/enterprise/config/modules";
 
 export type NavItem = {
   key: string;
@@ -39,7 +68,44 @@ export type NavItem = {
 
 export const CORE_NAV: NavItem[] = [
   { key: "overview", href: "/dashboard", icon: LayoutDashboard, labelKey: "overview" },
+  {
+    key: "enterprise",
+    href: "/dashboard/enterprise",
+    icon: LineChart,
+    labelKey: "enterprise",
+  },
 ];
+
+const ENTERPRISE_ICONS: Record<string, LucideIcon> = {
+  finance: Wallet,
+  staff: UserCog,
+  attendance: ScanLine,
+  "smart-calendar": CalendarDays,
+  forms: FileInput,
+  "automation-builder": Workflow,
+  "voice-notes": Mic,
+  "media-pro": FolderTree,
+  audit: ShieldCheck,
+  backup: HardDrive,
+  "theme-builder": Palette,
+  "landing-builder": LayoutTemplate,
+  "email-builder": Mail,
+  "invoice-designer": Receipt,
+  integrations: Plug,
+  gamification: Gamepad2,
+  "multi-brand": Layers,
+  franchise: Building2,
+  pos: ShoppingCart,
+  inventory: Package,
+  payroll: Banknote,
+  "membership-cards": CreditCard,
+  affiliate: Share2,
+  notifications: Bell,
+  help: LifeBuoy,
+  security: Lock,
+  "client-app": Smartphone,
+  "mobile-api": TabletSmartphone,
+};
 
 export const MODULE_NAV: NavItem[] = [
   { key: "programs", href: "/dashboard/programs", icon: Dumbbell, module: "PROGRAMS", labelKey: "programs" },
@@ -67,6 +133,13 @@ export const MODULE_NAV: NavItem[] = [
   { key: "marketing", href: "/dashboard/marketing", icon: Megaphone, module: "MARKETING", labelKey: "marketing" },
   { key: "marketplace", href: "/dashboard/settings/marketplace", icon: Store, module: "MARKETPLACE", labelKey: "marketplace" },
   { key: "website", href: "/dashboard/website", icon: Globe, labelKey: "website" },
+  ...ENTERPRISE_MODULE_PAGES.map((page) => ({
+    key: page.slug,
+    href: `/dashboard/enterprise/${page.slug}`,
+    icon: ENTERPRISE_ICONS[page.slug] ?? Settings,
+    module: page.module,
+    labelKey: page.slug,
+  })),
 ];
 
 export const SETTINGS_NAV: NavItem[] = [

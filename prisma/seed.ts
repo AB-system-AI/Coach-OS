@@ -134,6 +134,9 @@ async function main() {
         tenantId: tenant.id,
         isVisible: true,
         isVerified: true,
+        isFeatured: true,
+        instantBooking: true,
+        marketplaceTier: "FEATURED",
         headline: "Elite Fitness & Recovery Coach",
         bio: "10+ years helping athletes and professionals achieve peak performance through personalized training and recovery protocols.",
         country: "United States",
@@ -156,6 +159,7 @@ async function main() {
     await prisma.tenant.update({
       where: { id: tenant.id },
       data: {
+        productLine: "COACH_OS",
         businessType: "FITNESS_COACH",
         onboardingCompleted: true,
       },
@@ -164,6 +168,9 @@ async function main() {
     const modules = [
       "PROGRAMS", "NUTRITION", "RECOVERY", "MARKETPLACE", "BOOKINGS",
       "REPORTS", "BLOG", "MARKETING", "AI", "CRM",
+      "FINANCE", "SMART_CALENDAR", "MOBILE_API", "CLIENT_APP",
+      "STAFF", "ATTENDANCE", "INTEGRATIONS", "NOTIFICATION_CENTER",
+      "HELP_CENTER", "GAMIFICATION", "FORMS_BUILDER",
     ] as const;
     await prisma.tenantModuleConfig.createMany({
       data: modules.map((module) => ({
@@ -171,6 +178,18 @@ async function main() {
         module,
         isEnabled: true,
       })),
+    });
+
+    await prisma.financialWallet.create({
+      data: { tenantId: tenant.id, balance: 1250, currency: "USD" },
+    });
+
+    await prisma.tenantIntegration.createMany({
+      data: [
+        { tenantId: tenant.id, provider: "STRIPE", isEnabled: true },
+        { tenantId: tenant.id, provider: "WHATSAPP", isEnabled: false },
+        { tenantId: tenant.id, provider: "GOOGLE_CALENDAR", isEnabled: false },
+      ],
     });
   }
 

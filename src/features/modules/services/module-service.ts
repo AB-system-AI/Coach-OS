@@ -163,3 +163,47 @@ export async function seedLoyaltyProgram(tenantId: string) {
     },
   });
 }
+
+export async function seedEnterpriseDemoData(tenantId: string) {
+  await db.financialWallet.upsert({
+    where: { tenantId },
+    update: {},
+    create: { tenantId, balance: 0, currency: "USD" },
+  });
+
+  const channels = ["EMAIL", "SMS", "WHATSAPP", "PUSH", "IN_APP"];
+  await db.tenantNotificationChannelConfig.createMany({
+    data: channels.map((channel) => ({
+      tenantId,
+      channel,
+      isEnabled: channel === "EMAIL" || channel === "IN_APP",
+    })),
+    skipDuplicates: true,
+  });
+
+  const providers = [
+    "STRIPE",
+    "WHATSAPP",
+    "GOOGLE_CALENDAR",
+    "ZOOM",
+    "META_PIXEL",
+    "GOOGLE_ANALYTICS",
+  ] as const;
+  await db.tenantIntegration.createMany({
+    data: providers.map((provider) => ({
+      tenantId,
+      provider,
+      isEnabled: false,
+    })),
+    skipDuplicates: true,
+  });
+
+  await db.systemHealthSnapshot.create({
+    data: {
+      cpuPercent: 24,
+      memoryPercent: 58,
+      storagePercent: 42,
+      activeTenants: 1,
+    },
+  }).catch(() => undefined);
+}

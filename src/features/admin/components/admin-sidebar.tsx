@@ -30,6 +30,7 @@ const adminNav = [
   { label: "Support", href: "/admin/support", icon: HeadphonesIcon },
   { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
   { label: "Feature Flags", href: "/admin/feature-flags", icon: Flag },
+  { label: "System Health", href: "/admin/system-health", icon: Shield },
 ];
 
 export function AdminSidebar() {

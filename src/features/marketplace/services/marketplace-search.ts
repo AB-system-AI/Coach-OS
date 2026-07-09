@@ -25,6 +25,10 @@ export type MarketplaceCoachCard = {
   averageRating: number;
   reviewCount: number;
   isVerified: boolean;
+  isFeatured: boolean;
+  isSponsored: boolean;
+  instantBooking: boolean;
+  marketplaceTier: string;
   recoveryServiceCount: number;
   programCount: number;
 };
@@ -61,6 +65,10 @@ function buildOrderBy(
   sortBy: MarketplaceFilters["sortBy"]
 ): Prisma.CoachMarketplaceProfileOrderByWithRelationInput[] {
   switch (sortBy) {
+    case "featured":
+      return [{ isFeatured: "desc" }, { averageRating: "desc" }];
+    case "top_rated":
+      return [{ marketplaceTier: "desc" }, { averageRating: "desc" }];
     case "price_asc":
       return [{ startingPrice: "asc" }];
     case "price_desc":
@@ -125,6 +133,10 @@ export async function searchMarketplaceCoaches(rawFilters: unknown) {
     averageRating: p.averageRating,
     reviewCount: p.reviewCount,
     isVerified: p.isVerified,
+    isFeatured: p.isFeatured,
+    isSponsored: p.isSponsored,
+    instantBooking: p.instantBooking,
+    marketplaceTier: p.marketplaceTier,
     recoveryServiceCount: p.tenant._count.recoveryServices,
     programCount: p.tenant._count.programs,
   }));

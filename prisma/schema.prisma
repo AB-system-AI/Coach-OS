@@ -122,6 +122,192 @@ enum TenantModuleKey {
   AUTOMATION
   MARKETING
   DIGITAL_PRODUCTS
+  FINANCE
+  STAFF
+  ATTENDANCE
+  SMART_CALENDAR
+  FORMS_BUILDER
+  AUTOMATION_BUILDER
+  AI_VOICE
+  MEDIA_PRO
+  AUDIT_CENTER
+  BACKUP
+  THEME_BUILDER
+  LANDING_BUILDER
+  EMAIL_BUILDER
+  INVOICE_DESIGNER
+  INTEGRATIONS
+  GAMIFICATION
+  MULTI_BRAND
+  FRANCHISE
+  POS
+  INVENTORY
+  PAYROLL
+  MEMBERSHIP_CARDS
+  AFFILIATE
+  NOTIFICATION_CENTER
+  HELP_CENTER
+  SECURITY_CENTER
+  CLIENT_APP
+  MOBILE_API
+}
+
+enum ProductLine {
+  COACH_OS
+  GYM_OS
+  ACADEMY_OS
+  PHYSIO_OS
+  SPORTS_OS
+}
+
+enum StaffRole {
+  COACH
+  ASSISTANT_COACH
+  RECEPTION
+  NUTRITIONIST
+  PHYSIOTHERAPIST
+  MANAGER
+  TRAINER
+}
+
+enum AttendanceMethod {
+  QR
+  BARCODE
+  NFC
+  MANUAL
+}
+
+enum FinancialTransactionType {
+  REVENUE
+  EXPENSE
+  WITHDRAWAL
+  REFUND
+  TRANSFER
+  COMMISSION
+}
+
+enum WalletTransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum IntegrationProvider {
+  STRIPE
+  PAYMOB
+  WHATSAPP
+  ZOOM
+  GOOGLE_MEET
+  GOOGLE_CALENDAR
+  OUTLOOK
+  GOOGLE_DRIVE
+  DROPBOX
+  ONEDRIVE
+  META_PIXEL
+  GOOGLE_ANALYTICS
+  TIKTOK_PIXEL
+}
+
+enum FormFieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  EMAIL
+  PHONE
+  DATE
+  SELECT
+  MULTI_SELECT
+  CHECKBOX
+  RADIO
+  FILE
+  SIGNATURE
+}
+
+enum WorkflowStepType {
+  TRIGGER
+  ACTION
+  CONDITION
+  DELAY
+}
+
+enum BackupType {
+  FULL
+  PARTIAL
+  INCREMENTAL
+}
+
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum AffiliateStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum SyncEntityType {
+  BOOKING
+  PROGRAM
+  MEAL
+  PROGRESS
+  MESSAGE
+  PAYMENT
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCED
+  CONFLICT
+  FAILED
+}
+
+enum DeepLinkType {
+  BOOKING
+  PROGRAM
+  PAYMENT
+  CHAT
+  COURSE
+  CHALLENGE
+  PROFILE
+}
+
+enum MembershipCardType {
+  QR
+  BARCODE
+  NFC
+}
+
+enum PosPaymentMethod {
+  CASH
+  CARD
+  WALLET
+  MIXED
+}
+
+enum CalendarSyncProvider {
+  GOOGLE
+  OUTLOOK
+  APPLE
+}
+
+enum VoiceNoteStatus {
+  RECORDING
+  TRANSCRIBING
+  COMPLETED
+  FAILED
+}
+
+enum MarketplaceTier {
+  STANDARD
+  VERIFIED
+  FEATURED
+  SPONSORED
+  TOP_RATED
 }
 
 enum CourseStatus {
@@ -343,6 +529,12 @@ model User {
   bookings          Booking[]
   payments          Payment[]
   reviews           Review[]
+  staffProfile      TenantStaff?
+  voiceNotes          VoiceNote[]
+  attendanceChecked   AttendanceRecord[] @relation("AttendanceChecker")
+  gamificationProfile GamificationProfile?
+  userDevices         UserDevice[]
+  loginHistory        LoginHistory[]
 
   @@map("users")
 }
@@ -407,7 +599,9 @@ model Tenant {
   storageLimitBytes BigInt          @default(5368709120) // 5GB default
   trialEndsAt      DateTime?
   businessType     BusinessType?
+  productLine      ProductLine      @default(COACH_OS)
   onboardingCompleted Boolean      @default(false)
+  parentTenantId   String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -462,7 +656,41 @@ model Tenant {
   newsletterSubs   NewsletterSubscriber[]
   landingPages     LandingPage[]
   mediaFolders     MediaFolder[]
+  brands           Brand[]
+  franchiseLocations FranchiseLocation[]
+  staffMembers     TenantStaff[]
+  wallet           FinancialWallet?
+  expenses         Expense[]
+  attendanceRecords AttendanceRecord[]
+  calendarEvents   CalendarEvent[]
+  dynamicForms     DynamicForm[]
+  automationWorkflows AutomationWorkflow[]
+  voiceNotes       VoiceNote[]
+  integrations     TenantIntegration[]
+  affiliates       AffiliateReferral[]
+  membershipCards  MembershipCard[]
+  posTransactions  PosTransaction[]
+  payrollRecords   PayrollRecord[]
+  inventoryItems   InventoryItem[]
+  backupRecords    BackupRecord[]
+  emailTemplates   EmailTemplate[]
+  invoiceTemplates InvoiceTemplate[]
+  themeTemplates   ThemeTemplate[]
+  knowledgeArticles KnowledgeArticle[]
+  offlineSyncQueue OfflineSyncQueue[]
+  giftCards        GiftCard[]
+  deepLinks        DeepLink[]
+  notificationChannels TenantNotificationChannelConfig[]
+  calendarSyncConnections CalendarSyncConnection[]
+  gamificationBadges GamificationBadge[]
+  gamificationAchievements GamificationAchievement[]
+  gamificationProfiles GamificationProfile[]
+  leaderboardEntries LeaderboardEntry[]
+  parentTenant     Tenant?          @relation("FranchiseTree", fields: [parentTenantId], references: [id])
+  childTenants     Tenant[]         @relation("FranchiseTree")
 
+  @@index([productLine])
+  @@index([parentTenantId])
   @@index([slug])
   @@index([customDomain])
   @@index([status])
@@ -687,6 +915,8 @@ model ClientProfile {
 
   tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendanceRecords AttendanceRecord[]
+  membershipCards   MembershipCard[]
 
   @@index([tenantId])
   @@map("client_profiles")
@@ -1251,7 +1481,12 @@ model AuditLog {
   action    AuditAction
   entity    String?
   entityId  String?
+  reason    String?
   metadata  Json        @default("{}")
+  previousData Json?
+  canRollback Boolean   @default(false)
+  rolledBackAt DateTime?
+  rolledBackBy String?
   ipAddress String?
   createdAt DateTime    @default(now())
 
@@ -1325,11 +1560,18 @@ model CoachMarketplaceProfile {
   averageRating     Float    @default(0)
   reviewCount       Int      @default(0)
   videoIntroUrl     String?
+  marketplaceTier   MarketplaceTier @default(STANDARD)
+  isFeatured        Boolean  @default(false)
+  isSponsored       Boolean  @default(false)
+  instantBooking    Boolean  @default(false)
+  sponsoredUntil    DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@index([isFeatured])
+  @@index([marketplaceTier])
   @@index([isVisible])
   @@index([country])
   @@index([city])
@@ -2191,4 +2433,808 @@ model PlatformSetting {
   updatedAt DateTime @updatedAt
 
   @@map("platform_settings")
+}
+
+// ============================================================
+// MULTI-BRAND & FRANCHISE
+// ============================================================
+
+model Brand {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  slug        String
+  logoUrl     String?
+  primaryColor String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("brands")
+}
+
+model FranchiseLocation {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  address     String?
+  city        String?
+  country     String?
+  phone       String?
+  managerName String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("franchise_locations")
+}
+
+// ============================================================
+// STAFF MANAGEMENT
+// ============================================================
+
+model TenantStaff {
+  id          String    @id @default(cuid())
+  tenantId    String
+  userId      String?   @unique
+  name        String
+  email       String
+  phone       String?
+  role        StaffRole
+  permissions Json      @default("{}")
+  isActive    Boolean   @default(true)
+  hiredAt     DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id])
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([role])
+  @@map("tenant_staff")
+}
+
+// ============================================================
+// FINANCIAL MODULE
+// ============================================================
+
+model FinancialWallet {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique
+  balance         Decimal  @default(0) @db.Decimal(12, 2)
+  pendingBalance  Decimal  @default(0) @db.Decimal(12, 2)
+  currency        String   @default("USD")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transactions    WalletTransaction[]
+
+  @@map("financial_wallets")
+}
+
+model WalletTransaction {
+  id          String                    @id @default(cuid())
+  walletId    String
+  tenantId    String
+  type        FinancialTransactionType
+  amount      Decimal                   @db.Decimal(12, 2)
+  currency    String                    @default("USD")
+  status      WalletTransactionStatus   @default(PENDING)
+  description String?
+  referenceId String?
+  metadata    Json                      @default("{}")
+  createdAt   DateTime                  @default(now())
+
+  wallet      FinancialWallet           @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([tenantId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  tenantId    String
+  category    String
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("USD")
+  description String?
+  receiptUrl  String?
+  expenseDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([expenseDate])
+  @@map("expenses")
+}
+
+// ============================================================
+// ATTENDANCE
+// ============================================================
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  tenantId    String
+  clientId    String?
+  userId      String?
+  method      AttendanceMethod
+  checkedInAt DateTime         @default(now())
+  checkedOutAt DateTime?
+  location    String?
+  notes       String?
+  checkedById String?
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client      ClientProfile?   @relation(fields: [clientId], references: [id])
+  checkedBy   User?            @relation("AttendanceChecker", fields: [checkedById], references: [id])
+
+  @@index([tenantId])
+  @@index([checkedInAt])
+  @@map("attendance_records")
+}
+
+// ============================================================
+// SMART CALENDAR
+// ============================================================
+
+model CalendarEvent {
+  id          String    @id @default(cuid())
+  tenantId    String
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime
+  allDay      Boolean   @default(false)
+  location    String?
+  color       String?
+  recurrence  Json?
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  syncLinks   CalendarSyncLink[]
+
+  @@index([tenantId])
+  @@index([startAt])
+  @@map("calendar_events")
+}
+
+model CalendarSyncConnection {
+  id          String               @id @default(cuid())
+  tenantId    String
+  provider    CalendarSyncProvider
+  accessToken String?
+  refreshToken String?
+  calendarId  String?
+  isActive    Boolean              @default(true)
+  lastSyncAt  DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  syncLinks   CalendarSyncLink[]
+
+  @@unique([tenantId, provider])
+  @@index([tenantId])
+  @@map("calendar_sync_connections")
+}
+
+model CalendarSyncLink {
+  id            String                 @id @default(cuid())
+  eventId       String
+  connectionId  String
+  externalId    String?
+  lastSyncedAt  DateTime?
+
+  event         CalendarEvent          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  connection    CalendarSyncConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, connectionId])
+  @@map("calendar_sync_links")
+}
+
+// ============================================================
+// FORMS BUILDER
+// ============================================================
+
+model DynamicForm {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  slug        String
+  description String?
+  fields      Json     @default("[]")
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  submissions DynamicFormSubmission[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("dynamic_forms")
+}
+
+model DynamicFormSubmission {
+  id        String   @id @default(cuid())
+  formId    String
+  data      Json     @default("{}")
+  submitterEmail String?
+  createdAt DateTime @default(now())
+
+  form      DynamicForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+  @@map("dynamic_form_submissions")
+}
+
+// ============================================================
+// AUTOMATION BUILDER (Zapier-like)
+// ============================================================
+
+model AutomationWorkflow {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  trigger     String
+  isActive    Boolean  @default(false)
+  runCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  steps       AutomationWorkflowStep[]
+
+  @@index([tenantId])
+  @@map("automation_workflows")
+}
+
+model AutomationWorkflowStep {
+  id          String           @id @default(cuid())
+  workflowId  String
+  order       Int
+  type        WorkflowStepType
+  config      Json             @default("{}")
+  createdAt   DateTime         @default(now())
+
+  workflow    AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@map("automation_workflow_steps")
+}
+
+// ============================================================
+// AI VOICE NOTES
+// ============================================================
+
+model VoiceNote {
+  id            String          @id @default(cuid())
+  tenantId      String
+  userId        String
+  title         String?
+  audioUrl      String?
+  transcript    String?
+  durationSec   Int?
+  status        VoiceNoteStatus @default(RECORDING)
+  metadata      Json            @default("{}")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("voice_notes")
+}
+
+// ============================================================
+// INTEGRATIONS
+// ============================================================
+
+model TenantIntegration {
+  id          String              @id @default(cuid())
+  tenantId    String
+  provider    IntegrationProvider
+  isEnabled   Boolean             @default(false)
+  config      Json                @default("{}")
+  credentials Json                @default("{}")
+  lastSyncAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, provider])
+  @@index([tenantId])
+  @@map("tenant_integrations")
+}
+
+// ============================================================
+// GAMIFICATION
+// ============================================================
+
+model GamificationProfile {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String   @unique
+  level     Int      @default(1)
+  xp        Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badges    UserBadge[]
+  achievements UserAchievement[]
+
+  @@index([tenantId])
+  @@map("gamification_profiles")
+}
+
+model GamificationBadge {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  iconUrl     String?
+  xpRequired  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userBadges  UserBadge[]
+
+  @@index([tenantId])
+  @@map("gamification_badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  profileId String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  profile   GamificationProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  badge     GamificationBadge   @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, badgeId])
+  @@map("user_badges")
+}
+
+model GamificationAchievement {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  xpReward    Int      @default(0)
+  criteria    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userAchievements UserAchievement[]
+
+  @@index([tenantId])
+  @@map("gamification_achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  profileId     String
+  achievementId String
+  earnedAt      DateTime @default(now())
+
+  profile       GamificationProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  achievement   GamificationAchievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, achievementId])
+  @@map("user_achievements")
+}
+
+model LeaderboardEntry {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  period    String   @default("all_time")
+  score     Int      @default(0)
+  rank      Int?
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, period])
+  @@index([tenantId, period, score])
+  @@map("leaderboard_entries")
+}
+
+// ============================================================
+// AFFILIATE & GIFT CARDS
+// ============================================================
+
+model AffiliateReferral {
+  id            String          @id @default(cuid())
+  tenantId      String
+  affiliateCode String
+  referrerName  String?
+  referrerEmail String?
+  status        AffiliateStatus @default(PENDING)
+  commissionRate Decimal        @default(0) @db.Decimal(5, 2)
+  totalEarnings Decimal         @default(0) @db.Decimal(12, 2)
+  createdAt     DateTime        @default(now())
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, affiliateCode])
+  @@index([tenantId])
+  @@map("affiliate_referrals")
+}
+
+model GiftCard {
+  id          String    @id @default(cuid())
+  tenantId    String
+  code        String
+  amount      Decimal   @db.Decimal(10, 2)
+  balance     Decimal   @db.Decimal(10, 2)
+  currency    String    @default("USD")
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime?
+  redeemedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("gift_cards")
+}
+
+// ============================================================
+// MEMBERSHIP CARDS, POS, INVENTORY, PAYROLL
+// ============================================================
+
+model MembershipCard {
+  id          String             @id @default(cuid())
+  tenantId    String
+  clientId    String?
+  cardNumber  String
+  cardType    MembershipCardType @default(QR)
+  qrPayload   String?
+  barcodePayload String?
+  nfcPayload  String?
+  isActive    Boolean            @default(true)
+  issuedAt    DateTime           @default(now())
+  expiresAt   DateTime?
+
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client      ClientProfile?     @relation(fields: [clientId], references: [id])
+
+  @@unique([tenantId, cardNumber])
+  @@index([tenantId])
+  @@map("membership_cards")
+}
+
+model PosTransaction {
+  id            String           @id @default(cuid())
+  tenantId      String
+  total         Decimal          @db.Decimal(12, 2)
+  currency      String           @default("USD")
+  paymentMethod PosPaymentMethod
+  cashierName   String?
+  metadata      Json             @default("{}")
+  createdAt     DateTime         @default(now())
+
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items         PosTransactionItem[]
+
+  @@index([tenantId])
+  @@index([createdAt])
+  @@map("pos_transactions")
+}
+
+model PosTransactionItem {
+  id            String   @id @default(cuid())
+  transactionId String
+  productName   String
+  quantity      Int      @default(1)
+  unitPrice     Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+
+  transaction   PosTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("pos_transaction_items")
+}
+
+model InventoryItem {
+  id          String   @id @default(cuid())
+  tenantId    String
+  sku         String?
+  name        String
+  category    String?
+  quantity    Int      @default(0)
+  minStock    Int      @default(0)
+  unitPrice   Decimal? @db.Decimal(10, 2)
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("inventory_items")
+}
+
+model PayrollRecord {
+  id          String   @id @default(cuid())
+  tenantId    String
+  staffName   String
+  periodStart DateTime
+  periodEnd   DateTime
+  baseSalary  Decimal  @db.Decimal(12, 2)
+  commission  Decimal  @default(0) @db.Decimal(12, 2)
+  deductions  Decimal  @default(0) @db.Decimal(12, 2)
+  netPay      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("USD")
+  status      String   @default("pending")
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("payroll_records")
+}
+
+// ============================================================
+// BUILDERS: EMAIL, INVOICE, THEME
+// ============================================================
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  subject     String
+  htmlContent String
+  jsonDesign  Json     @default("{}")
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("email_templates")
+}
+
+model InvoiceTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  jsonDesign  Json     @default("{}")
+  logoUrl     String?
+  showQr      Boolean  @default(true)
+  taxRate     Decimal? @db.Decimal(5, 2)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("invoice_templates")
+}
+
+model ThemeTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  jsonDesign  Json     @default("{}")
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("theme_templates")
+}
+
+// ============================================================
+// BACKUP, HELP CENTER, OFFLINE SYNC, DEEP LINKS
+// ============================================================
+
+model BackupRecord {
+  id          String       @id @default(cuid())
+  tenantId    String
+  type        BackupType   @default(FULL)
+  status      BackupStatus @default(PENDING)
+  fileUrl     String?
+  fileSize    Int?
+  metadata    Json         @default("{}")
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("backup_records")
+}
+
+model KnowledgeArticle {
+  id          String   @id @default(cuid())
+  tenantId    String
+  title       String
+  slug        String
+  content     String
+  category    String?
+  isPublished Boolean  @default(false)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("knowledge_articles")
+}
+
+model OfflineSyncQueue {
+  id         String         @id @default(cuid())
+  tenantId   String
+  userId     String
+  entityType SyncEntityType
+  entityId   String?
+  payload    Json           @default("{}")
+  status     SyncStatus     @default(PENDING)
+  clientId   String?
+  createdAt  DateTime       @default(now())
+  syncedAt   DateTime?
+
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([status])
+  @@map("offline_sync_queue")
+}
+
+model DeepLink {
+  id         String       @id @default(cuid())
+  tenantId   String
+  code       String       @unique
+  type       DeepLinkType
+  targetId   String?
+  metadata   Json         @default("{}")
+  clickCount Int          @default(0)
+  expiresAt  DateTime?
+  createdAt  DateTime     @default(now())
+
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("deep_links")
+}
+
+model TenantNotificationChannelConfig {
+  id        String   @id @default(cuid())
+  tenantId  String
+  channel   String
+  isEnabled Boolean  @default(true)
+  config    Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, channel])
+  @@index([tenantId])
+  @@map("tenant_notification_channels")
+}
+
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  tenantId    String?
+  deviceName  String?
+  deviceType  String?
+  fingerprint String?
+  isTrusted   Boolean  @default(false)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_devices")
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String?
+  ipAddress String?
+  userAgent String?
+  location  String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_history")
+}
+
+model ApiRequestLog {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  apiKeyId   String?
+  method     String
+  path       String
+  statusCode Int
+  durationMs Int?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([createdAt])
+  @@map("api_request_logs")
+}
+
+// ============================================================
+// PLATFORM HEALTH & ENTERPRISE METRICS
+// ============================================================
+
+model SystemHealthSnapshot {
+  id          String   @id @default(cuid())
+  cpuPercent  Float?
+  memoryPercent Float?
+  storagePercent Float?
+  activeTenants Int?
+  metadata    Json     @default("{}")
+  capturedAt  DateTime @default(now())
+
+  @@index([capturedAt])
+  @@map("system_health_snapshots")
+}
+
+model CronJobLog {
+  id        String   @id @default(cuid())
+  jobName   String
+  status    String
+  durationMs Int?
+  error     String?
+  ranAt     DateTime @default(now())
+
+  @@index([jobName])
+  @@index([ranAt])
+  @@map("cron_job_logs")
+}
+
+model QueueMetric {
+  id          String   @id @default(cuid())
+  queueName   String
+  pending     Int      @default(0)
+  processing  Int      @default(0)
+  failed      Int      @default(0)
+  capturedAt  DateTime @default(now())
+
+  @@index([queueName])
+  @@index([capturedAt])
+  @@map("queue_metrics")
 }

@@ -12,7 +12,15 @@ export const marketplaceFiltersSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(50).default(12),
   sortBy: z
-    .enum(["rating", "price_asc", "price_desc", "experience", "newest"])
+    .enum([
+      "rating",
+      "featured",
+      "top_rated",
+      "price_asc",
+      "price_desc",
+      "experience",
+      "newest",
+    ])
     .default("rating"),
 });
 

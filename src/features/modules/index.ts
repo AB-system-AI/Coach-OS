@@ -15,4 +15,5 @@ export {
   seedDefaultAutomations,
   seedDefaultCrmPipeline,
   seedLoyaltyProgram,
+  seedEnterpriseDemoData,
 } from "./services/module-service";

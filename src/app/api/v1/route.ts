@@ -2,10 +2,13 @@ import { apiResponse } from "@/lib/api/auth";
 
 export async function GET() {
   return apiResponse({
-    name: "CoachOS API",
-    version: "1.0.0",
-    description: "REST API for mobile apps, Flutter, React Native, and third-party integrations",
-    documentation: "/docs/api",
+    name: "CoachOS Platform API",
+    version: "2.0.0",
+    description:
+      "Multi-product REST API — CoachOS, GymOS, AcademyOS, PhysioOS, SportsOS",
+    documentation: "/developers",
+    openapi: "/api/v1/openapi",
+    productLines: ["COACH_OS", "GYM_OS", "ACADEMY_OS", "PHYSIO_OS", "SPORTS_OS"],
     endpoints: {
       marketplace: {
         "GET /api/v1/marketplace/coaches": "List marketplace coaches (public)",
@@ -20,6 +23,15 @@ export async function GET() {
       reports: {
         "GET /api/v1/reports?period=30d": "Get tenant reports (auth required)",
       },
+      mobile: {
+        "GET /api/v1/mobile/config": "Mobile app config (Flutter/RN)",
+        "GET|POST /api/v1/mobile/sync": "Offline sync queue",
+        "POST /api/v1/mobile/push/register": "Push notification registration",
+        "GET /api/v1/mobile/deep-links/{code}": "Resolve deep link",
+        "GET /api/v1/mobile/client/dashboard": "Client app dashboard",
+        "GET /api/v1/mobile/flutter": "Flutter SDK metadata",
+        "GET /api/v1/mobile/react-native": "React Native SDK metadata",
+      },
       webhooks: {
         "POST /api/v1/webhooks": "Register webhook endpoint (auth required)",
       },
@@ -31,5 +43,8 @@ export async function GET() {
     mobileReady: true,
     flutterReady: true,
     reactNativeReady: true,
+    offlineSync: true,
+    pushNotifications: true,
+    deepLinks: true,
   });
 }

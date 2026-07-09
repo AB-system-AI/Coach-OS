@@ -9,6 +9,8 @@ import {
   seedDefaultCrmPipeline,
   seedLoyaltyProgram,
 } from "@/features/modules";
+import { getProductLineForBusinessType } from "@/features/platform";
+import { seedEnterpriseDemoData } from "@/features/modules";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -26,6 +28,7 @@ export async function completeOnboarding(
       data: {
         name: step1.businessName,
         businessType: step1.businessType,
+        productLine: getProductLineForBusinessType(step1.businessType),
         plan: step4.plan,
         onboardingCompleted: true,
       },
@@ -99,6 +102,8 @@ export async function completeOnboarding(
   if (step5.modules.includes("LOYALTY")) {
     await seedLoyaltyProgram(tenantId);
   }
+
+  await seedEnterpriseDemoData(tenantId);
 
   revalidatePath("/dashboard");
   redirect("/dashboard");

@@ -46,6 +46,12 @@ export function CoachCard({ coach }: CoachCardProps) {
               Verified
             </Badge>
           )}
+          {coach.isFeatured && (
+            <Badge className="absolute top-3 start-3 bg-amber-500">Featured</Badge>
+          )}
+          {coach.isSponsored && (
+            <Badge className="absolute top-12 start-3 bg-purple-500">Sponsored</Badge>
+          )}
         </div>
 
         <CardContent className="pt-10 pb-4">
@@ -101,6 +107,9 @@ export function CoachCard({ coach }: CoachCardProps) {
               <span className="font-semibold text-primary">
                 From {formatCurrency(coach.startingPrice, coach.currency)}
               </span>
+            )}
+            {coach.instantBooking && (
+              <Badge variant="outline" className="text-xs">Book Now</Badge>
             )}
           </div>
         </CardContent>
