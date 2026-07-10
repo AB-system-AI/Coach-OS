@@ -32,7 +32,6 @@ const LABEL_FALLBACKS: Record<string, string> = {
   marketing: "Marketing",
   marketplace: "Marketplace",
   files: "Files",
-  enterprise: "Enterprise",
   finance: "Finance",
   staff: "Staff",
   attendance: "Attendance",

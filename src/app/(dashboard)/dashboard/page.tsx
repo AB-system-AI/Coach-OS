@@ -1,5 +1,4 @@
-import { getCurrentTenant } from "@/lib/auth/session";
-import { redirect } from "next/navigation";
+import { requireCoachDashboardAccess } from "@/lib/auth/redirects";
 import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,8 +12,7 @@ import {
 import { formatCurrency } from "@/lib/utils";
 
 export default async function DashboardOverviewPage() {
-  const tenant = await getCurrentTenant();
-  if (!tenant) redirect("/register");
+  const tenant = await requireCoachDashboardAccess();
 
   const [clientCount, bookingCount, programCount, recentPayments] =
     await Promise.all([

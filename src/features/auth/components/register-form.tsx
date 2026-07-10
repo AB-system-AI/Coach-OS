@@ -66,7 +66,11 @@ export function RegisterForm({
 
       toast.success("Account created! Let's set up your business.");
       onSuccess?.();
-      router.push("/onboarding");
+      if (embedded) {
+        window.location.assign("/onboarding");
+      } else {
+        router.push("/onboarding");
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "An unexpected error occurred";
