@@ -132,6 +132,54 @@ export function resolvePublicAppUrl(): string {
   return resolveAuthUrl();
 }
 
+export type DeploymentEnvIssue = {
+  variable: string;
+  message: string;
+};
+
+/** Non-throwing audit for deployment dashboards and health checks. */
+export function getDeploymentEnvIssues(): DeploymentEnvIssue[] {
+  const issues: DeploymentEnvIssue[] = [];
+
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    issues.push({
+      variable: "DATABASE_URL",
+      message: "PostgreSQL connection string is required at runtime.",
+    });
+  }
+
+  const authSecret = process.env.BETTER_AUTH_SECRET?.trim();
+  if (!authSecret) {
+    issues.push({
+      variable: "BETTER_AUTH_SECRET",
+      message:
+        "Session signing secret is required (minimum 32 characters). Generate with: openssl rand -base64 32",
+    });
+  } else if (authSecret.length < 32 && !isNextBuild()) {
+    issues.push({
+      variable: "BETTER_AUTH_SECRET",
+      message: "Must be at least 32 characters.",
+    });
+  }
+
+  const hasAuthUrl =
+    !!process.env.BETTER_AUTH_URL?.trim() ||
+    !!process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    !!process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
+    !!process.env.VERCEL_URL?.trim();
+
+  if (!hasAuthUrl && isProduction() && !isNextBuild()) {
+    issues.push({
+      variable: "BETTER_AUTH_URL",
+      message:
+        "Set BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL to your public app URL (e.g. https://your-app.vercel.app).",
+    });
+  }
+
+  return issues;
+}
+
 export function getTrustedOrigins(): string[] {
   const origins = new Set<string>();
 

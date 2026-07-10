@@ -1,4 +1,5 @@
 import { getAuth } from "@/lib/auth";
+import { getDeploymentEnvIssues } from "@/lib/env";
 import { toNextJsHandler } from "better-auth/next-js";
 import { NextResponse } from "next/server";
 
@@ -18,6 +19,7 @@ function getHandlers(): AuthHandlers {
 function authConfigErrorResponse(error: unknown) {
   const message =
     error instanceof Error ? error.message : "Authentication is misconfigured";
+  const envIssues = getDeploymentEnvIssues();
 
   console.error("[CoachOS] Auth handler failed to initialize:", message);
 
@@ -25,8 +27,13 @@ function authConfigErrorResponse(error: unknown) {
     {
       error: "AUTH_MISCONFIGURED",
       message:
-        "Authentication is not configured. Set BETTER_AUTH_SECRET and BETTER_AUTH_URL (or NEXT_PUBLIC_APP_URL) in the deployment environment.",
-      detail: process.env.NODE_ENV === "development" ? message : undefined,
+        envIssues.length > 0
+          ? `Authentication is not configured. Missing or invalid: ${envIssues
+              .map((issue) => issue.variable)
+              .join(", ")}.`
+          : "Authentication is not configured. Check deployment environment variables.",
+      issues: envIssues,
+      detail: message,
     },
     { status: 500 }
   );
