@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
 import path from "path";
+
+loadEnvConfig(path.join(__dirname));
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3099";
 const e2ePort = new URL(baseURL).port || "3099";
@@ -35,5 +38,9 @@ export default defineConfig({
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        env: {
+          ...process.env,
+          NODE_ENV: "production",
+        } as Record<string, string>,
       },
 });

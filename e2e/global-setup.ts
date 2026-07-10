@@ -1,6 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import { loadEnvConfig } from "@next/env";
+import path from "path";
 import { seedDemoTenant, seedSuperAdmin } from "../prisma/seed/demo-tenant";
 import { DEMO_SEED_PASSWORD } from "../prisma/seed/helpers";
+
+loadEnvConfig(path.join(__dirname, ".."));
 
 async function globalSetup() {
   if (!process.env.DATABASE_URL) {
