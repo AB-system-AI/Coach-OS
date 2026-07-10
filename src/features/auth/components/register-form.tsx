@@ -8,19 +8,26 @@ import { createTenant } from "@/features/tenancy/actions/tenant-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { Dumbbell, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AuthFormActions,
+  AuthFormBody,
+  AuthFormShell,
+} from "@/features/auth/components/auth-form-shell";
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  embedded?: boolean;
+  onSuccess?: () => void;
+  onSwitchToLogin?: () => void;
+};
+
+export function RegisterForm({
+  embedded = false,
+  onSuccess,
+  onSwitchToLogin,
+}: RegisterFormProps) {
   const t = useTranslations("auth.register");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -55,6 +62,7 @@ export function RegisterForm() {
       }
 
       toast.success("Account created! Let's set up your business.");
+      onSuccess?.();
       router.push("/onboarding");
     } catch (error) {
       const message =
@@ -65,34 +73,56 @@ export function RegisterForm() {
     }
   }
 
+  const loginLink =
+    embedded && onSwitchToLogin ? (
+      <button
+        type="button"
+        className="text-primary hover:underline"
+        onClick={onSwitchToLogin}
+      >
+        {t("login")}
+      </button>
+    ) : (
+      <Link href="/login" className="text-primary hover:underline">
+        {t("login")}
+      </Link>
+    );
+
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <Dumbbell className="h-6 w-6" />
-        </div>
-        <CardTitle className="text-2xl">{t("title")}</CardTitle>
-        <CardDescription>{t("subtitle")}</CardDescription>
-      </CardHeader>
+    <AuthFormShell
+      embedded={embedded}
+      icon={<Dumbbell className="h-6 w-6" />}
+      title={t("title")}
+      description={t("subtitle")}
+    >
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <AuthFormBody embedded={embedded} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">{t("name")}</Label>
-            <Input id="name" name="name" required autoComplete="name" />
+            <Label htmlFor={embedded ? "modal-name" : "name"}>{t("name")}</Label>
+            <Input
+              id={embedded ? "modal-name" : "name"}
+              name="name"
+              required
+              autoComplete="name"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="businessName">{t("businessName")}</Label>
+            <Label htmlFor={embedded ? "modal-businessName" : "businessName"}>
+              {t("businessName")}
+            </Label>
             <Input
-              id="businessName"
+              id={embedded ? "modal-businessName" : "businessName"}
               name="businessName"
               required
               placeholder="FitPro Coaching"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">{t("email")}</Label>
+            <Label htmlFor={embedded ? "modal-register-email" : "email"}>
+              {t("email")}
+            </Label>
             <Input
-              id="email"
+              id={embedded ? "modal-register-email" : "email"}
               name="email"
               type="email"
               required
@@ -100,9 +130,11 @@ export function RegisterForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">{t("password")}</Label>
+            <Label htmlFor={embedded ? "modal-register-password" : "password"}>
+              {t("password")}
+            </Label>
             <Input
-              id="password"
+              id={embedded ? "modal-register-password" : "password"}
               name="password"
               type="password"
               required
@@ -110,20 +142,17 @@ export function RegisterForm() {
               autoComplete="new-password"
             />
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        </AuthFormBody>
+        <AuthFormActions embedded={embedded}>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {t("submit")}
           </Button>
           <p className="text-sm text-muted-foreground text-center">
-            {t("hasAccount")}{" "}
-            <Link href="/login" className="text-primary hover:underline">
-              {t("login")}
-            </Link>
+            {t("hasAccount")} {loginLink}
           </p>
-        </CardFooter>
+        </AuthFormActions>
       </form>
-    </Card>
+    </AuthFormShell>
   );
 }

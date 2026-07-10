@@ -8,17 +8,14 @@ import { signIn, getSession, magicLink } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { Dumbbell, Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AuthFormActions,
+  AuthFormBody,
+  AuthFormShell,
+} from "@/features/auth/components/auth-form-shell";
 
 type LoginMode = "password" | "magic";
 
@@ -33,7 +30,17 @@ function getRoleRedirect(role?: string | null, callbackUrl?: string): string {
   return (role && ROLE_REDIRECT[role]) ?? DEFAULT_REDIRECT;
 }
 
-export function LoginForm() {
+type LoginFormProps = {
+  embedded?: boolean;
+  onSuccess?: () => void;
+  onSwitchToRegister?: () => void;
+};
+
+export function LoginForm({
+  embedded = false,
+  onSuccess,
+  onSwitchToRegister,
+}: LoginFormProps) {
   const t = useTranslations("auth.login");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,6 +71,7 @@ export function LoginForm() {
       }
 
       toast.success("Welcome back!");
+      onSuccess?.();
 
       const session = await getSession();
       const role = (session?.data?.user as { role?: string } | null)?.role;
@@ -112,21 +120,35 @@ export function LoginForm() {
     }
   }
 
+  const registerLink =
+    embedded && onSwitchToRegister ? (
+      <button
+        type="button"
+        className="text-primary hover:underline"
+        onClick={onSwitchToRegister}
+      >
+        {t("register")}
+      </button>
+    ) : (
+      <Link href="/register" className="text-primary hover:underline">
+        {t("register")}
+      </Link>
+    );
+
   if (mode === "magic" && magicSent) {
     return (
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <MailCheck className="h-6 w-6" />
-          </div>
-          <CardTitle className="text-2xl">Check your email</CardTitle>
-          <CardDescription>
+      <AuthFormShell
+        embedded={embedded}
+        icon={<MailCheck className="h-6 w-6" />}
+        title="Check your email"
+        description={
+          <>
             We sent a sign-in link to{" "}
             <span className="font-medium text-foreground">{magicEmail}</span>.
             The link expires in 5 minutes.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter className="flex flex-col gap-3">
+          </>
+        }
+        footer={
           <Button
             variant="outline"
             className="w-full"
@@ -137,23 +159,19 @@ export function LoginForm() {
           >
             Use password instead
           </Button>
-        </CardFooter>
-      </Card>
+        }
+      />
     );
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <Dumbbell className="h-6 w-6" />
-        </div>
-        <CardTitle className="text-2xl">{t("title")}</CardTitle>
-        <CardDescription>{t("subtitle")}</CardDescription>
-      </CardHeader>
-
-      {/* Google OAuth */}
-      <CardContent className="space-y-4 pb-0">
+    <AuthFormShell
+      embedded={embedded}
+      icon={<Dumbbell className="h-6 w-6" />}
+      title={t("title")}
+      description={t("subtitle")}
+    >
+      <AuthFormBody embedded={embedded} className="space-y-4 pb-0">
         <Button
           type="button"
           variant="outline"
@@ -187,15 +205,15 @@ export function LoginForm() {
           <span className="text-xs text-muted-foreground">or</span>
           <div className="flex-1 border-t border-border" />
         </div>
-      </CardContent>
+      </AuthFormBody>
 
       {mode === "password" ? (
         <form onSubmit={handlePasswordSubmit}>
-          <CardContent className="space-y-4">
+          <AuthFormBody embedded={embedded} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
+              <Label htmlFor={embedded ? "modal-email" : "email"}>{t("email")}</Label>
               <Input
-                id="email"
+                id={embedded ? "modal-email" : "email"}
                 name="email"
                 type="email"
                 placeholder="coach@example.com"
@@ -205,7 +223,9 @@ export function LoginForm() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("password")}</Label>
+                <Label htmlFor={embedded ? "modal-password" : "password"}>
+                  {t("password")}
+                </Label>
                 <Link
                   href="/forgot-password"
                   className="text-sm text-primary hover:underline"
@@ -214,7 +234,7 @@ export function LoginForm() {
                 </Link>
               </div>
               <Input
-                id="password"
+                id={embedded ? "modal-password" : "password"}
                 name="password"
                 type="password"
                 required
@@ -224,16 +244,19 @@ export function LoginForm() {
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="rememberMe"
+                id={embedded ? "modal-rememberMe" : "rememberMe"}
                 name="rememberMe"
                 className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
               />
-              <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
+              <Label
+                htmlFor={embedded ? "modal-rememberMe" : "rememberMe"}
+                className="text-sm font-normal cursor-pointer"
+              >
                 Remember me for 30 days
               </Label>
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
+          </AuthFormBody>
+          <AuthFormActions embedded={embedded}>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {t("submit")}
@@ -247,20 +270,19 @@ export function LoginForm() {
               Sign in with magic link instead
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              {t("noAccount")}{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                {t("register")}
-              </Link>
+              {t("noAccount")} {registerLink}
             </p>
-          </CardFooter>
+          </AuthFormActions>
         </form>
       ) : (
         <form onSubmit={handleMagicLinkSubmit}>
-          <CardContent className="space-y-4">
+          <AuthFormBody embedded={embedded} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="magic-email">{t("email")}</Label>
+              <Label htmlFor={embedded ? "modal-magic-email" : "magic-email"}>
+                {t("email")}
+              </Label>
               <Input
-                id="magic-email"
+                id={embedded ? "modal-magic-email" : "magic-email"}
                 name="email"
                 type="email"
                 placeholder="coach@example.com"
@@ -272,8 +294,8 @@ export function LoginForm() {
               We&apos;ll send a one-click sign-in link to your email. No password
               needed.
             </p>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
+          </AuthFormBody>
+          <AuthFormActions embedded={embedded}>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               Send magic link
@@ -287,14 +309,11 @@ export function LoginForm() {
               Use password instead
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              {t("noAccount")}{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                {t("register")}
-              </Link>
+              {t("noAccount")} {registerLink}
             </p>
-          </CardFooter>
+          </AuthFormActions>
         </form>
       )}
-    </Card>
+    </AuthFormShell>
   );
 }
