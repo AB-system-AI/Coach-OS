@@ -3,15 +3,15 @@ import {
   extractSubdomain,
   isPlatformHost,
   isReservedSlug,
-} from "@/features/tenancy/types";
+} from "@/lib/middleware/tenancy";
 import {
   GUEST_ONLY_ROUTES,
   isOnboardingRoute,
   isProtectedRoute,
   ONBOARDING_ROUTE,
   stripLocalePrefix,
-} from "@/lib/auth/routes";
-import { buildSecurityHeaders } from "@/lib/security/headers";
+} from "@/lib/middleware/routes";
+import { buildSecurityHeaders } from "@/lib/middleware/security-headers";
 
 const ADMIN_PREFIX = "/admin";
 const DASHBOARD_PREFIX = "/dashboard";

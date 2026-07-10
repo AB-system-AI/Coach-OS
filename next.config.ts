@@ -33,6 +33,13 @@ const configWithIntl = withNextIntl(nextConfig);
 
 export default withSentryConfig(configWithIntl, {
   silent: true,
-  disableLogger: true,
   widenClientFileUpload: true,
+  webpack: {
+    // Keep middleware under Vercel's 1 MB Edge bundle limit (Sentry adds ~1 MB otherwise).
+    autoInstrumentMiddleware: false,
+    treeshake: {
+      removeDebugLogging: true,
+      removeTracing: true,
+    },
+  },
 });
