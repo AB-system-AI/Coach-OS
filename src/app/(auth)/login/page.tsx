@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/features/auth/components/login-form";
+import { redirectIfAuthenticated } from "@/lib/auth/redirects";
 import { Loader2 } from "lucide-react";
 
 function LoginFormFallback() {
@@ -10,7 +11,14 @@ function LoginFormFallback() {
   );
 }
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ callbackUrl?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { callbackUrl } = await searchParams;
+  await redirectIfAuthenticated(callbackUrl);
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-muted/20 px-4 py-12">
       <Suspense fallback={<LoginFormFallback />}>

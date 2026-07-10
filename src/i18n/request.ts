@@ -17,5 +17,18 @@ export default getRequestConfig(async () => {
   return {
     locale,
     messages: (await import(`./messages/${locale}.json`)).default,
+    onError(error) {
+      if (error.code === "MISSING_MESSAGE") return;
+      console.error(error);
+    },
+    getMessageFallback({ key, namespace }) {
+      const fullKey = namespace ? `${namespace}.${key}` : key;
+      const leaf = fullKey.split(".").pop() ?? fullKey;
+      return leaf
+        .replace(/([A-Z])/g, " $1")
+        .replace(/[-_]/g, " ")
+        .replace(/^\w/, (c) => c.toUpperCase())
+        .trim();
+    },
   };
 });

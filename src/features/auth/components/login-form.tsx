@@ -78,9 +78,20 @@ export function LoginForm({
       toast.success("Welcome back!");
       onSuccess?.();
 
-      const session = await getSession();
-      const role = (session?.data?.user as { role?: string } | null)?.role;
-      router.push(getRoleRedirect(role, callbackUrl));
+      let role: string | undefined;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const session = await getSession();
+        role = (session?.data?.user as { role?: string } | null)?.role;
+        if (role) break;
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+
+      const destination = getRoleRedirect(role, callbackUrl);
+      if (embedded) {
+        router.push(destination);
+      } else {
+        window.location.assign(destination);
+      }
     } catch {
       toast.error("An unexpected error occurred");
     } finally {

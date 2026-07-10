@@ -1,4 +1,5 @@
 import { getCurrentTenant } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,7 +14,7 @@ import { formatCurrency } from "@/lib/utils";
 
 export default async function DashboardOverviewPage() {
   const tenant = await getCurrentTenant();
-  if (!tenant) return null;
+  if (!tenant) redirect("/register");
 
   const [clientCount, bookingCount, programCount, recentPayments] =
     await Promise.all([

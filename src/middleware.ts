@@ -4,18 +4,15 @@ import {
   isPlatformHost,
   isReservedSlug,
 } from "@/features/tenancy/types";
+import {
+  GUEST_ONLY_ROUTES,
+  isGuestOnlyRoute,
+  isOnboardingRoute,
+  isProtectedRoute,
+  ONBOARDING_ROUTE,
+  stripLocalePrefix,
+} from "@/lib/auth/redirects";
 import { buildSecurityHeaders } from "@/lib/security/headers";
-
-const AUTH_ROUTES = [
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-  "/magic-link",
-  "/onboarding",
-  "/invite",
-];
 
 const ADMIN_PREFIX = "/admin";
 const DASHBOARD_PREFIX = "/dashboard";
@@ -24,19 +21,10 @@ const API_PREFIX = "/api";
 
 const STATIC_APP_PATHS = ["/icon", "/apple-icon", "/manifest.json"];
 
-function isAuthRoute(pathname: string): boolean {
-  const path = pathname.replace(/^\/(en|ar)/, "") || "/";
-  return AUTH_ROUTES.some(
-    (route) => path === route || path.startsWith(route + "?")
-  );
-}
-
-function isProtectedRoute(pathname: string): boolean {
-  const path = pathname.replace(/^\/(en|ar)/, "") || "/";
+function getSessionCookie(request: NextRequest): string | undefined {
   return (
-    path.startsWith(ADMIN_PREFIX) ||
-    path.startsWith(DASHBOARD_PREFIX) ||
-    path.startsWith(PORTAL_PREFIX)
+    request.cookies.get("better-auth.session_token")?.value ??
+    request.cookies.get("__Secure-better-auth.session_token")?.value
   );
 }
 
@@ -53,30 +41,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Custom domain / subdomain → rewrite to tenant route
   const tenantRewrite = await resolveTenantRewrite(host, pathname, request.url);
   if (tenantRewrite) {
     applySecurityHeaders(tenantRewrite);
     return tenantRewrite;
   }
 
-  const sessionCookie =
-    request.cookies.get("better-auth.session_token") ??
-    request.cookies.get("__Secure-better-auth.session_token");
-  const isAuthenticated = !!sessionCookie;
+  const sessionToken = getSessionCookie(request);
+  const isAuthenticated = !!sessionToken;
+  const cleanPath = stripLocalePrefix(pathname);
 
   if (isProtectedRoute(pathname) && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    loginUrl.searchParams.set("callbackUrl", cleanPath);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthRoute(pathname) && isAuthenticated) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (isOnboardingRoute(pathname) && !isAuthenticated) {
+    return NextResponse.redirect(new URL("/register", request.url));
   }
 
-  const response = NextResponse.next();
+  // Authenticated users on guest-only routes are redirected in server page
+  // components via resolveAuthenticatedDestination() (role + onboarding aware).
 
+  const response = NextResponse.next();
   response.headers.set("x-host", host);
   response.headers.set("x-pathname", pathname);
   applySecurityHeaders(response);
@@ -102,25 +90,19 @@ async function resolveTenantRewrite(
     return null;
   }
 
-  const cleanPath = pathname.replace(/^\/(en|ar)/, "") || "/";
+  const cleanPath = stripLocalePrefix(pathname);
   const platformPrefixes = [
-    "/admin",
-    "/dashboard",
-    "/portal",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    "/verify-email",
-    "/magic-link",
-    "/invite",
+    ADMIN_PREFIX,
+    DASHBOARD_PREFIX,
+    PORTAL_PREFIX,
+    ...GUEST_ONLY_ROUTES,
+    ONBOARDING_ROUTE,
     "/marketplace",
     "/pricing",
     "/features",
     "/about",
-    "/onboarding",
     "/developers",
-    "/api",
+    API_PREFIX,
   ];
 
   if (platformPrefixes.some((p) => cleanPath.startsWith(p))) {

@@ -16,6 +16,9 @@ import { Dumbbell, LogOut, Menu, X } from "lucide-react";
 import { useState, useMemo } from "react";
 
 const LABEL_FALLBACKS: Record<string, string> = {
+  enterprise: "Enterprise",
+  branding: "Branding",
+  domains: "Domains",
   clients: "Clients",
   progress: "Progress",
   courses: "Courses",
@@ -79,14 +82,11 @@ export function DashboardSidebar({ enabledModules }: DashboardSidebarProps) {
   }, [enabledModules]);
 
   function label(key: string) {
-    if (key in LABEL_FALLBACKS) {
-      try {
-        return t(key as "overview");
-      } catch {
-        return LABEL_FALLBACKS[key];
-      }
+    try {
+      return t(key as "overview");
+    } catch {
+      return LABEL_FALLBACKS[key] ?? key;
     }
-    return t(key as "overview");
   }
 
   async function handleSignOut() {
