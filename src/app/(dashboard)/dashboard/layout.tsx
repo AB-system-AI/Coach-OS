@@ -1,27 +1,13 @@
 import { DashboardSidebar } from "@/features/coach-dashboard/components/dashboard-sidebar";
-import { getCurrentTenant, getSession } from "@/lib/auth/session";
+import { requireCoachDashboardAccess } from "@/lib/auth/redirects";
 import { getEnabledModules } from "@/features/modules";
-import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const tenant = await getCurrentTenant();
-
-  if (!tenant) {
-    redirect("/register");
-  }
-
-  if (!tenant.onboardingCompleted) {
-    redirect("/onboarding");
-  }
+  const tenant = await requireCoachDashboardAccess();
 
   const enabledModules = await getEnabledModules(tenant.id);
 

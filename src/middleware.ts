@@ -6,7 +6,6 @@ import {
 } from "@/features/tenancy/types";
 import {
   GUEST_ONLY_ROUTES,
-  isGuestOnlyRoute,
   isOnboardingRoute,
   isProtectedRoute,
   ONBOARDING_ROUTE,

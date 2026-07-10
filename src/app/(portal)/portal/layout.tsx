@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth/session";
+import { AUTH_PATHS, resolveAuthenticatedDestination } from "@/lib/auth/redirects";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -31,14 +32,22 @@ const portalNav = [
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) {
+    redirect(`${AUTH_PATHS.login}?callbackUrl=${encodeURIComponent(AUTH_PATHS.portal)}`);
+  }
+
+  if (session.user.role !== "CLIENT") {
+    redirect(await resolveAuthenticatedDestination());
+  }
 
   const membership = await db.tenantMember.findFirst({
     where: { userId: session.user.id, role: "CLIENT", isActive: true },
     include: { tenant: { include: { theme: true } } },
   });
 
-  if (!membership) redirect("/register");
+  if (!membership) {
+    redirect(AUTH_PATHS.login);
+  }
 
   const tenant = membership.tenant;
 

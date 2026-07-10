@@ -1,13 +1,8 @@
 import { OnboardingWizard } from "@/features/onboarding";
-import { getCurrentTenant } from "@/lib/auth/session";
-import { redirect } from "next/navigation";
+import { requireOnboardingPageAccess } from "@/lib/auth/redirects";
 
 export default async function OnboardingPage() {
-  const tenant = await getCurrentTenant();
-
-  if (tenant?.onboardingCompleted) {
-    redirect("/dashboard");
-  }
+  const { tenant } = await requireOnboardingPageAccess();
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-muted/30">

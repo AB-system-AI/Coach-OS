@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { RegisterForm } from "@/features/auth/components/register-form";
+import { redirectIfAuthenticated } from "@/lib/auth/redirects";
 import { Loader2 } from "lucide-react";
 
 function RegisterFormFallback() {
@@ -10,7 +11,9 @@ function RegisterFormFallback() {
   );
 }
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  await redirectIfAuthenticated();
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-muted/20 px-4 py-12">
       <Suspense fallback={<RegisterFormFallback />}>
