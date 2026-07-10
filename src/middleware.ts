@@ -10,7 +10,7 @@ import {
   isProtectedRoute,
   ONBOARDING_ROUTE,
   stripLocalePrefix,
-} from "@/lib/auth/redirects";
+} from "@/lib/auth/routes";
 import { buildSecurityHeaders } from "@/lib/security/headers";
 
 const ADMIN_PREFIX = "/admin";
