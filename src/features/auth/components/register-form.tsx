@@ -7,14 +7,17 @@ import { signUp } from "@/lib/auth/client";
 import { createTenant } from "@/features/tenancy/actions/tenant-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 import { Dumbbell, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AuthFormActions,
   AuthFormBody,
+  AuthFormField,
   AuthFormShell,
+  authButtonClassName,
+  authInputClassName,
+  authLinkClassName,
 } from "@/features/auth/components/auth-form-shell";
 
 type RegisterFormProps = {
@@ -77,13 +80,13 @@ export function RegisterForm({
     embedded && onSwitchToLogin ? (
       <button
         type="button"
-        className="text-primary hover:underline"
+        className={authLinkClassName}
         onClick={onSwitchToLogin}
       >
         {t("login")}
       </button>
     ) : (
-      <Link href="/login" className="text-primary hover:underline">
+      <Link href="/login" className={authLinkClassName}>
         {t("login")}
       </Link>
     );
@@ -91,48 +94,50 @@ export function RegisterForm({
   return (
     <AuthFormShell
       embedded={embedded}
-      icon={<Dumbbell className="h-6 w-6" />}
+      icon={<Dumbbell className="h-5 w-5" />}
       title={t("title")}
       description={t("subtitle")}
     >
       <form onSubmit={handleSubmit}>
-        <AuthFormBody embedded={embedded} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor={embedded ? "modal-name" : "name"}>{t("name")}</Label>
+        <AuthFormBody embedded={embedded} className="space-y-3.5">
+          <AuthFormField label={t("name")} htmlFor={embedded ? "modal-name" : "name"}>
             <Input
               id={embedded ? "modal-name" : "name"}
               name="name"
               required
               autoComplete="name"
+              className={authInputClassName}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={embedded ? "modal-businessName" : "businessName"}>
-              {t("businessName")}
-            </Label>
+          </AuthFormField>
+          <AuthFormField
+            label={t("businessName")}
+            htmlFor={embedded ? "modal-businessName" : "businessName"}
+          >
             <Input
               id={embedded ? "modal-businessName" : "businessName"}
               name="businessName"
               required
               placeholder="FitPro Coaching"
+              className={authInputClassName}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={embedded ? "modal-register-email" : "email"}>
-              {t("email")}
-            </Label>
+          </AuthFormField>
+          <AuthFormField
+            label={t("email")}
+            htmlFor={embedded ? "modal-register-email" : "email"}
+          >
             <Input
               id={embedded ? "modal-register-email" : "email"}
               name="email"
               type="email"
               required
               autoComplete="email"
+              className={authInputClassName}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor={embedded ? "modal-register-password" : "password"}>
-              {t("password")}
-            </Label>
+          </AuthFormField>
+          <AuthFormField
+            label={t("password")}
+            htmlFor={embedded ? "modal-register-password" : "password"}
+          >
             <Input
               id={embedded ? "modal-register-password" : "password"}
               name="password"
@@ -140,15 +145,20 @@ export function RegisterForm({
               required
               minLength={8}
               autoComplete="new-password"
+              className={authInputClassName}
             />
-          </div>
+          </AuthFormField>
         </AuthFormBody>
         <AuthFormActions embedded={embedded}>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button
+            type="submit"
+            className={authButtonClassName}
+            disabled={loading}
+          >
             {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {t("submit")}
           </Button>
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-center text-sm text-muted-foreground">
             {t("hasAccount")} {loginLink}
           </p>
         </AuthFormActions>

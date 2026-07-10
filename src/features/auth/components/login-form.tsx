@@ -14,7 +14,12 @@ import { toast } from "sonner";
 import {
   AuthFormActions,
   AuthFormBody,
+  AuthFormField,
   AuthFormShell,
+  authButtonClassName,
+  authInputClassName,
+  authLabelClassName,
+  authLinkClassName,
 } from "@/features/auth/components/auth-form-shell";
 
 type LoginMode = "password" | "magic";
@@ -124,13 +129,13 @@ export function LoginForm({
     embedded && onSwitchToRegister ? (
       <button
         type="button"
-        className="text-primary hover:underline"
+        className={authLinkClassName}
         onClick={onSwitchToRegister}
       >
         {t("register")}
       </button>
     ) : (
-      <Link href="/register" className="text-primary hover:underline">
+      <Link href="/register" className={authLinkClassName}>
         {t("register")}
       </Link>
     );
@@ -139,7 +144,7 @@ export function LoginForm({
     return (
       <AuthFormShell
         embedded={embedded}
-        icon={<MailCheck className="h-6 w-6" />}
+        icon={<MailCheck className="h-5 w-5" />}
         title="Check your email"
         description={
           <>
@@ -151,7 +156,7 @@ export function LoginForm({
         footer={
           <Button
             variant="outline"
-            className="w-full"
+            className={authButtonClassName}
             onClick={() => {
               setMagicSent(false);
               setMode("password");
@@ -167,7 +172,7 @@ export function LoginForm({
   return (
     <AuthFormShell
       embedded={embedded}
-      icon={<Dumbbell className="h-6 w-6" />}
+      icon={<Dumbbell className="h-5 w-5" />}
       title={t("title")}
       description={t("subtitle")}
     >
@@ -175,7 +180,7 @@ export function LoginForm({
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="h-11 w-full rounded-xl border-border/50 bg-muted/30 text-[15px] font-medium shadow-none hover:bg-muted/50"
           onClick={handleGoogleSignIn}
           disabled={loading}
         >
@@ -201,17 +206,18 @@ export function LoginForm({
         </Button>
 
         <div className="flex items-center gap-3">
-          <div className="flex-1 border-t border-border" />
-          <span className="text-xs text-muted-foreground">or</span>
-          <div className="flex-1 border-t border-border" />
+          <div className="h-px flex-1 bg-border/60" />
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+            or
+          </span>
+          <div className="h-px flex-1 bg-border/60" />
         </div>
       </AuthFormBody>
 
       {mode === "password" ? (
         <form onSubmit={handlePasswordSubmit}>
-          <AuthFormBody embedded={embedded} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor={embedded ? "modal-email" : "email"}>{t("email")}</Label>
+          <AuthFormBody embedded={embedded} className="space-y-3.5">
+            <AuthFormField label={t("email")} htmlFor={embedded ? "modal-email" : "email"}>
               <Input
                 id={embedded ? "modal-email" : "email"}
                 name="email"
@@ -219,16 +225,20 @@ export function LoginForm({
                 placeholder="coach@example.com"
                 required
                 autoComplete="email"
+                className={authInputClassName}
               />
-            </div>
-            <div className="space-y-2">
+            </AuthFormField>
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor={embedded ? "modal-password" : "password"}>
+                <label
+                  htmlFor={embedded ? "modal-password" : "password"}
+                  className={authLabelClassName}
+                >
                   {t("password")}
-                </Label>
+                </label>
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
                 >
                   {t("forgotPassword")}
                 </Link>
@@ -239,48 +249,53 @@ export function LoginForm({
                 type="password"
                 required
                 autoComplete="current-password"
+                className={authInputClassName}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <input
                 type="checkbox"
                 id={embedded ? "modal-rememberMe" : "rememberMe"}
                 name="rememberMe"
-                className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                className="h-4 w-4 cursor-pointer rounded border-border/60 accent-primary"
               />
               <Label
                 htmlFor={embedded ? "modal-rememberMe" : "rememberMe"}
-                className="text-sm font-normal cursor-pointer"
+                className="cursor-pointer text-sm font-normal text-muted-foreground"
               >
                 Remember me for 30 days
               </Label>
             </div>
           </AuthFormBody>
           <AuthFormActions embedded={embedded}>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className={authButtonClassName}
+              disabled={loading}
+            >
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {t("submit")}
             </Button>
             <Button
               type="button"
               variant="ghost"
-              className="w-full text-sm"
+              className="h-9 w-full text-sm text-muted-foreground hover:text-foreground"
               onClick={() => setMode("magic")}
             >
               Sign in with magic link instead
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-center text-sm text-muted-foreground">
               {t("noAccount")} {registerLink}
             </p>
           </AuthFormActions>
         </form>
       ) : (
         <form onSubmit={handleMagicLinkSubmit}>
-          <AuthFormBody embedded={embedded} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor={embedded ? "modal-magic-email" : "magic-email"}>
-                {t("email")}
-              </Label>
+          <AuthFormBody embedded={embedded} className="space-y-3.5">
+            <AuthFormField
+              label={t("email")}
+              htmlFor={embedded ? "modal-magic-email" : "magic-email"}
+            >
               <Input
                 id={embedded ? "modal-magic-email" : "magic-email"}
                 name="email"
@@ -288,27 +303,32 @@ export function LoginForm({
                 placeholder="coach@example.com"
                 required
                 autoComplete="email"
+                className={authInputClassName}
               />
-            </div>
-            <p className="text-sm text-muted-foreground">
+            </AuthFormField>
+            <p className="text-sm leading-relaxed text-muted-foreground">
               We&apos;ll send a one-click sign-in link to your email. No password
               needed.
             </p>
           </AuthFormBody>
           <AuthFormActions embedded={embedded}>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className={authButtonClassName}
+              disabled={loading}
+            >
               {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               Send magic link
             </Button>
             <Button
               type="button"
               variant="ghost"
-              className="w-full text-sm"
+              className="h-9 w-full text-sm text-muted-foreground hover:text-foreground"
               onClick={() => setMode("password")}
             >
               Use password instead
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-center text-sm text-muted-foreground">
               {t("noAccount")} {registerLink}
             </p>
           </AuthFormActions>

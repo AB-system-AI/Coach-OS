@@ -4,12 +4,21 @@ import type { ReactNode } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+export const authInputClassName =
+  "h-11 rounded-xl border-border/50 bg-muted/30 shadow-none transition-all placeholder:text-muted-foreground/60 focus-visible:border-primary/40 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/15";
+
+export const authLabelClassName = "text-[13px] font-medium text-foreground/80";
+
+export const authButtonClassName =
+  "h-11 w-full rounded-xl text-[15px] font-semibold shadow-sm";
+
+export const authLinkClassName =
+  "font-medium text-primary transition-colors hover:text-primary/80";
 
 type AuthFormShellProps = {
   embedded?: boolean;
@@ -20,6 +29,26 @@ type AuthFormShellProps = {
   footer?: ReactNode;
   className?: string;
 };
+
+function AuthFormHeader({
+  icon,
+  title,
+  description,
+}: Pick<AuthFormShellProps, "icon" | "title" | "description">) {
+  return (
+    <div className="space-y-2 text-center">
+      <div className="mx-auto mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+        {icon}
+      </div>
+      <h2 className="text-xl font-semibold tracking-tight text-foreground">
+        {title}
+      </h2>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    </div>
+  );
+}
 
 export function AuthFormShell({
   embedded = false,
@@ -32,31 +61,30 @@ export function AuthFormShell({
 }: AuthFormShellProps) {
   if (embedded) {
     return (
-      <div className={cn("w-full bg-background text-foreground", className)}>
-        <div className="space-y-1.5 px-6 pb-2 pt-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            {icon}
-          </div>
-          <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
+      <div className={cn("w-full text-foreground", className)}>
+        <div className="px-8 pb-1 pt-8">
+          <AuthFormHeader icon={icon} title={title} description={description} />
         </div>
         {children}
-        {footer ? <div className="px-6 pb-6 pt-2">{footer}</div> : null}
+        {footer ? <div className="px-8 pb-8 pt-2">{footer}</div> : null}
       </div>
     );
   }
 
   return (
-    <Card className={cn("w-full max-w-md", className)}>
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          {icon}
-        </div>
-        <CardTitle className="text-2xl">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card
+      className={cn(
+        "w-full max-w-md border-border/50 bg-card/80 shadow-xl backdrop-blur-sm",
+        className
+      )}
+    >
+      <CardHeader className="space-y-0 px-8 pb-2 pt-8 text-center">
+        <AuthFormHeader icon={icon} title={title} description={description} />
       </CardHeader>
       {children}
-      {footer ? <CardFooter className="flex flex-col gap-4">{footer}</CardFooter> : null}
+      {footer ? (
+        <CardFooter className="flex flex-col gap-4 px-8 pb-8">{footer}</CardFooter>
+      ) : null}
     </Card>
   );
 }
@@ -71,10 +99,12 @@ export function AuthFormBody({
   className?: string;
 }) {
   if (embedded) {
-    return <div className={cn("space-y-4 px-6", className)}>{children}</div>;
+    return <div className={cn("space-y-4 px-8", className)}>{children}</div>;
   }
 
-  return <CardContent className={cn("space-y-4", className)}>{children}</CardContent>;
+  return (
+    <CardContent className={cn("space-y-4 px-8", className)}>{children}</CardContent>
+  );
 }
 
 export function AuthFormActions({
@@ -88,11 +118,34 @@ export function AuthFormActions({
 }) {
   if (embedded) {
     return (
-      <div className={cn("flex flex-col gap-4 px-6 pb-6", className)}>
+      <div className={cn("flex flex-col gap-3 px-8 pb-8 pt-2", className)}>
         {children}
       </div>
     );
   }
 
-  return <CardFooter className={cn("flex flex-col gap-4", className)}>{children}</CardFooter>;
+  return (
+    <CardFooter className={cn("flex flex-col gap-3 px-8 pb-8", className)}>
+      {children}
+    </CardFooter>
+  );
+}
+
+export function AuthFormField({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: ReactNode;
+  htmlFor: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={htmlFor} className={authLabelClassName}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
 }
