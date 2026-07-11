@@ -1,8 +1,12 @@
 /**
  * Environment variable resolution for CoachOS.
  * Build-time placeholders are used only during `next build` so compilation succeeds
- * without a live database. Runtime (dev/prod) enforces real values.
+ * without a live database. Runtime (dev/prod) reads env via bracket access so
+ * Vercel runtime injection is not replaced by empty build-time values.
  */
+
+import { hasAllRuntimeEnv, hasRuntimeEnv, readRuntimeEnv } from "@/lib/env/runtime";
+import { ServiceUnavailableError } from "@/lib/deployment/errors";
 
 const BUILD_PLACEHOLDER_DATABASE_URL =
   "postgresql://build:build@127.0.0.1:5432/build?schema=public";
@@ -35,8 +39,17 @@ function originFromHost(host: string): string {
   return `https://${trimmed}`;
 }
 
+/** Non-throwing runtime lookup used by Prisma, guards, and health checks. */
+export function getRuntimeDatabaseUrl(): string | undefined {
+  return readRuntimeEnv("DATABASE_URL");
+}
+
+export function isRuntimeDatabaseConfigured(): boolean {
+  return Boolean(getRuntimeDatabaseUrl()) || isNextBuild();
+}
+
 export function resolveDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL?.trim();
+  const url = getRuntimeDatabaseUrl();
   if (url) return url;
 
   if (isNextBuild()) {
@@ -49,24 +62,30 @@ export function resolveDatabaseUrl(): string {
     );
   }
 
-  throw new Error("[CoachOS] DATABASE_URL is required in production.");
+  throw new ServiceUnavailableError(
+    "database",
+    "[CoachOS] DATABASE_URL is not configured."
+  );
 }
 
 export function requireDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL?.trim();
-  if (!url) {
-    if (isDevelopment()) {
-      throw new Error(
-        "[CoachOS] DATABASE_URL is missing. Copy .env.example to .env and set your PostgreSQL connection string."
-      );
-    }
-    throw new Error("[CoachOS] DATABASE_URL is required at runtime.");
+  const url = getRuntimeDatabaseUrl();
+  if (url) return url;
+
+  if (isDevelopment()) {
+    throw new Error(
+      "[CoachOS] DATABASE_URL is missing. Copy .env.example to .env and set your PostgreSQL connection string."
+    );
   }
-  return url;
+
+  throw new ServiceUnavailableError(
+    "database",
+    "[CoachOS] DATABASE_URL is not configured."
+  );
 }
 
 export function resolveAuthSecret(): string {
-  const secret = process.env.BETTER_AUTH_SECRET?.trim();
+  const secret = readRuntimeEnv("BETTER_AUTH_SECRET");
 
   if (secret) {
     if (secret.length < 32 && !isNextBuild()) {
@@ -87,25 +106,26 @@ export function resolveAuthSecret(): string {
     );
   }
 
-  throw new Error("[CoachOS] BETTER_AUTH_SECRET is required in production.");
+  throw new ServiceUnavailableError(
+    "authentication",
+    "[CoachOS] BETTER_AUTH_SECRET is not configured."
+  );
 }
 
 export function resolveAuthUrl(): string {
   const explicit =
-    process.env.BETTER_AUTH_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim();
+    readRuntimeEnv("BETTER_AUTH_URL") || readRuntimeEnv("NEXT_PUBLIC_APP_URL");
 
   if (explicit) {
     return normalizeOrigin(explicit);
   }
 
-  // Vercel injects these automatically — use them when explicit URLs are unset.
-  const vercelProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  const vercelProduction = readRuntimeEnv("VERCEL_PROJECT_PRODUCTION_URL");
   if (vercelProduction) {
     return originFromHost(vercelProduction);
   }
 
-  const vercelUrl = process.env.VERCEL_URL?.trim();
+  const vercelUrl = readRuntimeEnv("VERCEL_URL");
   if (vercelUrl) {
     return originFromHost(vercelUrl);
   }
@@ -121,13 +141,14 @@ export function resolveAuthUrl(): string {
     return "http://localhost:3000";
   }
 
-  throw new Error(
-    "[CoachOS] BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL is required in production."
+  throw new ServiceUnavailableError(
+    "authentication",
+    "[CoachOS] BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL is not configured."
   );
 }
 
 export function resolvePublicAppUrl(): string {
-  const url = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const url = readRuntimeEnv("NEXT_PUBLIC_APP_URL");
   if (url) return normalizeOrigin(url);
   return resolveAuthUrl();
 }
@@ -141,15 +162,14 @@ export type DeploymentEnvIssue = {
 export function getDeploymentEnvIssues(): DeploymentEnvIssue[] {
   const issues: DeploymentEnvIssue[] = [];
 
-  const databaseUrl = process.env.DATABASE_URL?.trim();
-  if (!databaseUrl) {
+  if (!getRuntimeDatabaseUrl()) {
     issues.push({
       variable: "DATABASE_URL",
       message: "PostgreSQL connection string is required at runtime.",
     });
   }
 
-  const authSecret = process.env.BETTER_AUTH_SECRET?.trim();
+  const authSecret = readRuntimeEnv("BETTER_AUTH_SECRET");
   if (!authSecret) {
     issues.push({
       variable: "BETTER_AUTH_SECRET",
@@ -164,10 +184,10 @@ export function getDeploymentEnvIssues(): DeploymentEnvIssue[] {
   }
 
   const hasAuthUrl =
-    !!process.env.BETTER_AUTH_URL?.trim() ||
-    !!process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    !!process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
-    !!process.env.VERCEL_URL?.trim();
+    hasRuntimeEnv("BETTER_AUTH_URL") ||
+    hasRuntimeEnv("NEXT_PUBLIC_APP_URL") ||
+    hasRuntimeEnv("VERCEL_PROJECT_PRODUCTION_URL") ||
+    hasRuntimeEnv("VERCEL_URL");
 
   if (!hasAuthUrl && isProduction() && !isNextBuild()) {
     issues.push({
@@ -184,19 +204,18 @@ export function getTrustedOrigins(): string[] {
   const origins = new Set<string>();
 
   const candidates = [
-    process.env.BETTER_AUTH_URL,
-    process.env.NEXT_PUBLIC_APP_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? originFromHost(process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    readRuntimeEnv("BETTER_AUTH_URL"),
+    readRuntimeEnv("NEXT_PUBLIC_APP_URL"),
+    readRuntimeEnv("VERCEL_PROJECT_PRODUCTION_URL")
+      ? originFromHost(readRuntimeEnv("VERCEL_PROJECT_PRODUCTION_URL")!)
       : undefined,
-    process.env.VERCEL_URL
-      ? originFromHost(process.env.VERCEL_URL)
+    readRuntimeEnv("VERCEL_URL")
+      ? originFromHost(readRuntimeEnv("VERCEL_URL")!)
       : undefined,
   ];
 
   for (const candidate of candidates) {
-    const value = candidate?.trim();
-    if (value) origins.add(normalizeOrigin(value));
+    if (candidate) origins.add(normalizeOrigin(candidate));
   }
 
   if (origins.size === 0) {
@@ -205,3 +224,5 @@ export function getTrustedOrigins(): string[] {
 
   return Array.from(origins);
 }
+
+export { hasAllRuntimeEnv, hasRuntimeEnv, readRuntimeEnv };

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
+import { sanitizeErrorMessageForClient } from "@/lib/deployment/sanitize-error";
 
 export default function Error({
   error,
@@ -12,6 +13,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { title, description } = sanitizeErrorMessageForClient(error);
+
   useEffect(() => {
     console.error("[CoachOS] Unhandled error:", error);
     Sentry.captureException(error);
@@ -25,10 +28,8 @@ export default function Error({
             <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold">Something went wrong</h1>
-        <p className="text-muted-foreground text-sm">
-          {error.message ?? "An unexpected error occurred. Please try again."}
-        </p>
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <p className="text-muted-foreground text-sm">{description}</p>
         {error.digest && (
           <p className="text-xs text-muted-foreground font-mono">Error ID: {error.digest}</p>
         )}

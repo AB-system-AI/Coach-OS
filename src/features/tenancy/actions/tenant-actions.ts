@@ -86,7 +86,7 @@ export async function createTenant(input: CreateTenantInput) {
     });
 
     return newTenant;
-  });
+  }, { maxWait: 10_000, timeout: 20_000 });
 
   revalidatePath("/admin/coaches");
   return tenant;

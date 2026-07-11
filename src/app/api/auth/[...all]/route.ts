@@ -1,5 +1,6 @@
 import { getAuth } from "@/lib/auth";
 import { getDeploymentEnvIssues } from "@/lib/env";
+import { ServiceUnavailableError } from "@/lib/deployment/errors";
 import { toNextJsHandler } from "better-auth/next-js";
 import { NextResponse } from "next/server";
 
@@ -46,6 +47,18 @@ async function handle(request: Request) {
     if (request.method === "POST") return POST(request);
     return NextResponse.json({ error: "METHOD_NOT_ALLOWED" }, { status: 405 });
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) {
+      console.error("[CoachOS] Auth service unavailable:", error.message);
+      return NextResponse.json(
+        {
+          error: "SERVICE_UNAVAILABLE",
+          service: error.service,
+          message:
+            "Authentication is temporarily unavailable. Please try again later.",
+        },
+        { status: 503 }
+      );
+    }
     return authConfigErrorResponse(error);
   }
 }

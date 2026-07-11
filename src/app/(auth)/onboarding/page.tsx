@@ -1,4 +1,4 @@
-import { OnboardingWizard } from "@/features/onboarding";
+import { OnboardingWizard } from "@/features/onboarding/components/onboarding-wizard";
 import { requireOnboardingPageAccess } from "@/lib/auth/redirects";
 
 export default async function OnboardingPage() {

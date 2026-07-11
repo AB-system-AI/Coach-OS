@@ -34,13 +34,9 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: `npm run start -- -p ${e2ePort}`,
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-        env: {
-          ...process.env,
-          NODE_ENV: "production",
-        } as Record<string, string>,
+        command: `node e2e/start-server.mjs ${e2ePort}`,
+        url: `${baseURL}/api/health`,
+        reuseExistingServer: false,
+        timeout: 180_000,
       },
 });

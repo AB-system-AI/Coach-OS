@@ -5,13 +5,11 @@ import { magicLinkClient, inferAdditionalFields } from "better-auth/client/plugi
 import type { getAuth } from "@/lib/auth";
 
 /**
- * Prefer same-origin `/api/auth` in the browser so preview/production hosts
- * work even when NEXT_PUBLIC_APP_URL is missing or points at another domain.
+ * Always use same-origin `/api/auth` in the browser. NEXT_PUBLIC_APP_URL is
+ * inlined at build time and can point at the wrong host (e.g. port 3000 vs E2E
+ * 3099, or production URL on preview deploys).
  */
-const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-
 export const authClient = createAuthClient({
-  baseURL: configuredBaseUrl || undefined,
   plugins: [
     magicLinkClient(),
     inferAdditionalFields<ReturnType<typeof getAuth>>(),

@@ -1,6 +1,7 @@
 import { PlatformHeader } from "@/components/layout/platform-header";
+import { ProtectedRouteGuard } from "@/components/deployment/protected-route-guard";
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -8,7 +9,9 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <PlatformHeader />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <ProtectedRouteGuard>{children}</ProtectedRouteGuard>
+      </main>
     </div>
   );
 }

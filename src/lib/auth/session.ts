@@ -1,13 +1,21 @@
 import { headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
-import { db, assertDatabaseConfigured } from "@/lib/db";
+import { db, assertDatabaseConfigured, isDatabaseConfigured } from "@/lib/db";
+import { ServiceUnavailableError } from "@/lib/deployment/errors";
 import type { UserRole } from "@prisma/client";
 
 export async function getSession() {
-  const session = await getAuth().api.getSession({
-    headers: await headers(),
-  });
-  return session;
+  if (!isDatabaseConfigured()) return null;
+
+  try {
+    const session = await getAuth().api.getSession({
+      headers: await headers(),
+    });
+    return session;
+  } catch (error) {
+    console.error("[CoachOS] getSession failed:", error);
+    return null;
+  }
 }
 
 export async function requireAuth() {
@@ -59,23 +67,38 @@ export async function requireTenantAccess(tenantId: string) {
 }
 
 export async function getCurrentTenant() {
+  if (!isDatabaseConfigured()) {
+    throw new ServiceUnavailableError(
+      "database",
+      "Database is not configured."
+    );
+  }
+
   assertDatabaseConfigured();
   const session = await getSession();
   if (!session?.user) return null;
 
-  const membership = await db.tenantMember.findFirst({
-    where: {
-      userId: session.user.id,
-      isActive: true,
-      role: { in: ["COACH", "ASSISTANT_COACH"] },
-    },
-    include: {
-      tenant: {
-        include: { theme: true, settings: true },
+  try {
+    const membership = await db.tenantMember.findFirst({
+      where: {
+        userId: session.user.id,
+        isActive: true,
+        role: { in: ["COACH", "ASSISTANT_COACH"] },
       },
-    },
-    orderBy: { joinedAt: "asc" },
-  });
+      include: {
+        tenant: {
+          include: { theme: true, settings: true },
+        },
+      },
+      orderBy: { joinedAt: "asc" },
+    });
 
-  return membership?.tenant ?? null;
+    return membership?.tenant ?? null;
+  } catch (error) {
+    console.error("[CoachOS] getCurrentTenant failed:", error);
+    throw new ServiceUnavailableError(
+      "database",
+      "Unable to load tenant context."
+    );
+  }
 }

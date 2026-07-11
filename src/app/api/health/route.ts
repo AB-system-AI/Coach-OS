@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { getDeploymentEnvIssues } from "@/lib/env";
+import {
+  checkDatabaseConnection,
+  isDatabaseConfigured,
+} from "@/lib/db";
+import {
+  getAllServiceStatuses,
+  getEnvAuditTable,
+  getLastStartupReport,
+} from "@/lib/deployment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,37 +17,52 @@ export async function GET() {
   const timestamp = new Date().toISOString();
   const version = process.env.npm_package_version ?? "0.1.0";
   const envIssues = getDeploymentEnvIssues();
+  const services = getAllServiceStatuses();
+  const startup = getLastStartupReport();
 
-  let dbStatus: "ok" | "error" | "skipped" = "skipped";
+  let dbStatus: "ok" | "error" | "skipped" | "unconfigured" = "skipped";
   let dbError: string | undefined;
 
-  if (envIssues.some((issue) => issue.variable === "DATABASE_URL")) {
-    dbStatus = "skipped";
+  if (!isDatabaseConfigured()) {
+    dbStatus = "unconfigured";
     dbError = "DATABASE_URL is not configured";
   } else {
-    try {
-      const { db } = await import("@/lib/db");
-      await db.$queryRaw`SELECT 1`;
+    const connected = await checkDatabaseConnection();
+    if (connected) {
       dbStatus = "ok";
-    } catch (err) {
+    } else {
       dbStatus = "error";
-      dbError =
-        err instanceof Error ? err.message : "Database unreachable";
+      dbError = "Database unreachable";
     }
   }
 
-  const isHealthy = envIssues.length === 0 && dbStatus === "ok";
+  const coreReady = envIssues.length === 0 && dbStatus === "ok";
 
   return NextResponse.json(
     {
-      status: isHealthy ? "ok" : "degraded",
+      status: coreReady ? "ok" : "degraded",
       env: envIssues.length === 0 ? "ok" : "error",
       ...(envIssues.length > 0 ? { envIssues } : {}),
       db: dbStatus,
       ...(dbError ? { dbError } : {}),
+      services: services.map((service) => ({
+        service: service.service,
+        configured: service.configured,
+        available: service.available,
+        message: service.message,
+      })),
+      ...(startup
+        ? {
+            startup: {
+              ok: startup.ok,
+              missingRequired: startup.missingRequired,
+            },
+          }
+        : {}),
+      envAudit: getEnvAuditTable(),
       timestamp,
       version,
     },
-    { status: isHealthy ? 200 : 503 }
+    { status: coreReady ? 200 : 503 }
   );
 }

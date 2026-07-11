@@ -3,6 +3,9 @@ import { AUTH_PATHS, resolveAuthenticatedDestination } from "@/lib/auth/redirect
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { ServiceUnavailablePage } from "@/components/deployment/service-unavailable-screen";
+import { getProtectedRouteUnavailableProps } from "@/lib/deployment/guards";
+import { ServiceUnavailableError } from "@/lib/deployment/errors";
 import {
   LayoutDashboard,
   Dumbbell,
@@ -31,27 +34,33 @@ const portalNav = [
 ];
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
-  if (!session?.user) {
-    redirect(`${AUTH_PATHS.login}?callbackUrl=${encodeURIComponent(AUTH_PATHS.portal)}`);
+  const unavailable = await getProtectedRouteUnavailableProps();
+  if (unavailable) {
+    return <ServiceUnavailablePage {...unavailable} />;
   }
 
-  if (session.user.role !== "CLIENT") {
-    redirect(await resolveAuthenticatedDestination());
-  }
+  try {
+    const session = await getSession();
+    if (!session?.user) {
+      redirect(`${AUTH_PATHS.login}?callbackUrl=${encodeURIComponent(AUTH_PATHS.portal)}`);
+    }
 
-  const membership = await db.tenantMember.findFirst({
-    where: { userId: session.user.id, role: "CLIENT", isActive: true },
-    include: { tenant: { include: { theme: true } } },
-  });
+    if (session.user.role !== "CLIENT") {
+      redirect(await resolveAuthenticatedDestination());
+    }
 
-  if (!membership) {
-    redirect(AUTH_PATHS.login);
-  }
+    const membership = await db.tenantMember.findFirst({
+      where: { userId: session.user.id, role: "CLIENT", isActive: true },
+      include: { tenant: { include: { theme: true } } },
+    });
 
-  const tenant = membership.tenant;
+    if (!membership) {
+      redirect(AUTH_PATHS.login);
+    }
 
-  return (
+    const tenant = membership.tenant;
+
+    return (
     <div className="flex min-h-screen bg-muted/30">
       <aside className="hidden md:flex w-64 flex-col border-r bg-background fixed inset-y-0">
         <div className="flex h-16 items-center border-b px-6">
@@ -97,5 +106,17 @@ export default async function PortalLayout({ children }: { children: React.React
         <main className="p-6">{children}</main>
       </div>
     </div>
-  );
+    );
+  } catch (error) {
+    if (error instanceof ServiceUnavailableError) {
+      return (
+        <ServiceUnavailablePage
+          service={error.service}
+          title="Client portal temporarily unavailable"
+          description="We could not load your portal. Please try again shortly."
+        />
+      );
+    }
+    throw error;
+  }
 }

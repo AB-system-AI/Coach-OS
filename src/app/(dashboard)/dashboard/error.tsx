@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { sanitizeErrorMessageForClient } from "@/lib/deployment/sanitize-error";
 
 export default function DashboardError({
   error,
@@ -13,6 +14,8 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { title, description } = sanitizeErrorMessageForClient(error);
+
   useEffect(() => {
     console.error("[CoachOS] Dashboard error:", error);
   }, [error]);
@@ -27,10 +30,8 @@ export default function DashboardError({
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold mb-1">Something went wrong</h2>
-            <p className="text-sm text-muted-foreground">
-              {error.message ?? "An error occurred while loading this page."}
-            </p>
+            <h2 className="text-xl font-bold mb-1">{title}</h2>
+            <p className="text-sm text-muted-foreground">{description}</p>
             {error.digest && (
               <p className="text-xs text-muted-foreground font-mono mt-2">ID: {error.digest}</p>
             )}

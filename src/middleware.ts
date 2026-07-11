@@ -12,6 +12,7 @@ import {
   stripLocalePrefix,
 } from "@/lib/middleware/routes";
 import { buildSecurityHeaders } from "@/lib/middleware/security-headers";
+import { isMaintenanceModeEnabled } from "@/lib/deployment/service-status";
 
 const ADMIN_PREFIX = "/admin";
 const DASHBOARD_PREFIX = "/dashboard";
@@ -20,10 +21,29 @@ const API_PREFIX = "/api";
 
 const STATIC_APP_PATHS = ["/icon", "/apple-icon", "/manifest.json"];
 
+/** Routes that stay reachable during maintenance or partial outages. */
+const PUBLIC_DURING_MAINTENANCE = [
+  "/",
+  "/pricing",
+  "/features",
+  "/about",
+  "/developers",
+  "/marketplace",
+  "/maintenance",
+  "/status",
+];
+
 function getSessionCookie(request: NextRequest): string | undefined {
   return (
     request.cookies.get("better-auth.session_token")?.value ??
     request.cookies.get("__Secure-better-auth.session_token")?.value
+  );
+}
+
+function isPublicDuringMaintenance(pathname: string): boolean {
+  const clean = stripLocalePrefix(pathname);
+  return PUBLIC_DURING_MAINTENANCE.some(
+    (route) => clean === route || clean.startsWith(`${route}/`)
   );
 }
 
@@ -38,6 +58,17 @@ export async function middleware(request: NextRequest) {
     STATIC_APP_PATHS.includes(pathname)
   ) {
     return NextResponse.next();
+  }
+
+  if (
+    isMaintenanceModeEnabled() &&
+    !isPublicDuringMaintenance(pathname) &&
+    !pathname.startsWith("/maintenance")
+  ) {
+    const maintenanceUrl = new URL("/maintenance", request.url);
+    const response = NextResponse.rewrite(maintenanceUrl);
+    applySecurityHeaders(response);
+    return response;
   }
 
   const tenantRewrite = await resolveTenantRewrite(host, pathname, request.url);

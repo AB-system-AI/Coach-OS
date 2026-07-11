@@ -89,7 +89,7 @@ export async function completeOnboarding(
       update: { plan: step4.plan },
       create: { tenantId, plan: step4.plan, status: "TRIALING" },
     });
-  });
+  }, { maxWait: 10_000, timeout: 20_000 });
 
   await initializeTenantModules(tenantId, step1.businessType, step5.modules);
 

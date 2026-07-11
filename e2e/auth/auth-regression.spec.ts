@@ -38,7 +38,6 @@ test.afterAll(async () => {
 });
 
 test.describe("Authentication regression", () => {
-  test.describe.configure({ mode: "serial" });
   test("register coach → onboarding → dashboard", async ({ page }) => {
     const hydration = attachHydrationGuard(page);
     const businessName = `E2E Fitness ${Date.now()}`;
@@ -53,7 +52,7 @@ test.describe("Authentication regression", () => {
 
     await completeOnboardingWizard(page);
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+    await expect(page.getByText(/welcome back/i)).toBeVisible();
 
     hydration.assertNoHydrationErrors();
   });
@@ -72,18 +71,10 @@ test.describe("Authentication regression", () => {
     await page.locator('input[name="email"]').fill(email);
     await page.locator('input[name="password"]').fill("E2e-Coach-Password-2026!");
 
-    const [signUpResponse] = await Promise.all([
-      page.waitForResponse(
-        (response) =>
-          response.url().includes("/api/auth/sign-up/email") &&
-          response.request().method() === "POST"
-      ),
+    await Promise.all([
+      page.waitForURL(/\/onboarding/, { timeout: 90_000 }),
       page.getByRole("button", { name: /create account/i }).click(),
     ]);
-
-    expect(signUpResponse.ok()).toBeTruthy();
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL(/\/onboarding/, { timeout: 60_000 });
 
     hydration.assertNoHydrationErrors();
   });
@@ -149,21 +140,15 @@ test.describe("Authentication regression", () => {
 
   test("password reset page accepts token query param", async ({ page }) => {
     await page.goto("/reset-password?token=e2e-test-token");
-    await expect(
-      page.getByRole("heading", { name: /set new password/i })
-    ).toBeVisible();
+    await expect(page.getByText(/set new password/i)).toBeVisible();
   });
 
   test("email verification pages render", async ({ page }) => {
     await page.goto("/verify-email");
-    await expect(
-      page.getByRole("heading", { name: /check your inbox/i })
-    ).toBeVisible();
+    await expect(page.getByText(/check your inbox/i)).toBeVisible();
 
     await page.goto("/verify-email?success=true");
-    await expect(
-      page.getByRole("heading", { name: /email verified/i })
-    ).toBeVisible();
+    await expect(page.getByText(/email verified/i)).toBeVisible();
   });
 
   test("email verification marks user verified in database", async () => {

@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { isProduction } from "@/lib/env";
+import { readRuntimeEnv } from "@/lib/env/runtime";
 import {
   invoiceEmail,
   paymentReceiptEmail,
@@ -35,7 +36,7 @@ let resendClient: Resend | null = null;
 
 function getResendClient(): Resend {
   if (!resendClient) {
-    const apiKey = process.env.RESEND_API_KEY?.trim();
+    const apiKey = readRuntimeEnv("RESEND_API_KEY");
     if (!apiKey) {
       throw new Error("[CoachOS] RESEND_API_KEY is required to send emails.");
     }
@@ -51,9 +52,13 @@ export async function sendEmail({
   from,
   replyTo,
 }: SendEmailOptions): Promise<SendEmailResult> {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const apiKey = readRuntimeEnv("RESEND_API_KEY");
 
   if (!apiKey) {
+    if (readRuntimeEnv("E2E_TEST") === "true" || !isProduction()) {
+      console.log("[email:e2e-skipped]", { to, subject, from, replyTo });
+      return { id: "e2e-skipped" };
+    }
     if (isProduction()) {
       throw new Error(
         "[CoachOS] RESEND_API_KEY is required in production to send emails."
@@ -63,8 +68,7 @@ export async function sendEmail({
     return { id: "dev-skipped" };
   }
 
-  const defaultFrom =
-    process.env.RESEND_FROM_EMAIL?.trim() ?? "noreply@coachos.app";
+  const defaultFrom = readRuntimeEnv("RESEND_FROM_EMAIL") ?? "noreply@coachos.app";
   const fromAddress = from ?? defaultFrom;
   const recipients = Array.isArray(to) ? to : [to];
 

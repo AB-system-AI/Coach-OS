@@ -1,9 +1,11 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";
-import { db } from "@/lib/db";
+import { db, isDatabaseConfigured } from "@/lib/db";
+import { ServiceUnavailableError } from "@/lib/deployment/errors";
 import {
   getTrustedOrigins,
+  readRuntimeEnv,
   resolveAuthSecret,
   resolveAuthUrl,
 } from "@/lib/env";
@@ -67,10 +69,11 @@ function createAuth() {
 
     socialProviders: {
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        clientId: readRuntimeEnv("GOOGLE_CLIENT_ID") ?? "",
+        clientSecret: readRuntimeEnv("GOOGLE_CLIENT_SECRET") ?? "",
         enabled: !!(
-          process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+          readRuntimeEnv("GOOGLE_CLIENT_ID") &&
+          readRuntimeEnv("GOOGLE_CLIENT_SECRET")
         ),
       },
     },
@@ -148,6 +151,10 @@ function createAuth() {
     },
 
     trustedOrigins: getTrustedOrigins(),
+
+  ...(readRuntimeEnv("E2E_DISABLE_RATE_LIMIT") === "true"
+    ? { rateLimit: { enabled: false } }
+    : {}),
   });
 }
 
@@ -155,6 +162,12 @@ let authInstance: ReturnType<typeof createAuth> | undefined;
 
 export function getAuth() {
   if (!authInstance) {
+    if (!isDatabaseConfigured()) {
+      throw new ServiceUnavailableError(
+        "authentication",
+        "Authentication is unavailable — database not configured."
+      );
+    }
     authInstance = createAuth();
   }
   return authInstance;
