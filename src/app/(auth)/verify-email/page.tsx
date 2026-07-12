@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation";
 import { CheckCircle, XCircle, MailCheck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { isEmailVerificationRequired } from "@/lib/auth/email-verification";
 import { VerifyEmailResend } from "@/features/auth/components/verify-email-resend";
 import {
   Card,
@@ -23,6 +25,10 @@ interface VerifyEmailPageProps {
 export default async function VerifyEmailPage({
   searchParams,
 }: VerifyEmailPageProps) {
+  if (!isEmailVerificationRequired()) {
+    redirect("/login");
+  }
+
   const { error, success } = await searchParams;
 
   // Success state — redirected here after Better Auth verifies the token

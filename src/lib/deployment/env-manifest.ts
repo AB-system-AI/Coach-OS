@@ -350,6 +350,16 @@ export const ENV_MANIFEST: EnvVarDefinition[] = [
     description: "OpenAI API key for AI features.",
   },
   {
+    name: "REQUIRE_EMAIL_VERIFICATION",
+    required: false,
+    category: "auth",
+    usedIn: ["src/lib/auth", "src/lib/auth/email-verification"],
+    safeDefault: "false",
+    optionalInProduction: true,
+    description:
+      "When true, users must verify email before sign-in. Set to true for production launch.",
+  },
+  {
     name: "E2E_DISABLE_RATE_LIMIT",
     required: false,
     category: "platform",

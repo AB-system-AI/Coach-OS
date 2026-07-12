@@ -10,7 +10,7 @@ import {
   resolveAuthUrl,
 } from "@/lib/env";
 import { writeAuditLog } from "@/lib/audit";
-import { isProductionEmailVerificationRequired } from "@/lib/auth/email-verification";
+import { isEmailVerificationRequired } from "@/lib/auth/email-verification";
 import {
   queueAuthEmail,
   sendWelcomeEmail,
@@ -21,6 +21,7 @@ import {
 
 function createAuth() {
   const baseURL = resolveAuthUrl();
+  const emailVerificationRequired = isEmailVerificationRequired();
 
   return betterAuth({
     secret: resolveAuthSecret(),
@@ -32,7 +33,7 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 8,
-      requireEmailVerification: isProductionEmailVerificationRequired(),
+      requireEmailVerification: emailVerificationRequired,
       sendResetPassword: async ({ user, url }) => {
         const template = resetPasswordEmail(user.name, url);
         queueAuthEmail({
@@ -44,9 +45,11 @@ function createAuth() {
     },
 
     emailVerification: {
-      sendOnSignUp: true,
+      sendOnSignUp: emailVerificationRequired,
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
+        if (!emailVerificationRequired) return;
+
         const template = verificationEmail(user.name, url);
         queueAuthEmail({
           to: user.email,
@@ -55,6 +58,8 @@ function createAuth() {
         });
       },
       afterEmailVerification: async (user) => {
+        if (!emailVerificationRequired) return;
+
         try {
           await sendWelcomeEmail({
             to: user.email,
@@ -115,6 +120,22 @@ function createAuth() {
     },
 
     databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            if (emailVerificationRequired) return;
+
+            try {
+              await sendWelcomeEmail({
+                to: user.email,
+                name: user.name,
+              });
+            } catch (error) {
+              console.error("[auth] Failed to send welcome email:", error);
+            }
+          },
+        },
+      },
       session: {
         create: {
           after: async (session, ctx) => {

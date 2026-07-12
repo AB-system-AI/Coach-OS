@@ -66,11 +66,7 @@ export function RegisterForm({
       }
 
       const destination = await getPostLoginDestination();
-      toast.success(
-        destination === "/verify-email"
-          ? "Account created! Verify your email to continue."
-          : "Account created! Let's set up your business."
-      );
+      toast.success("Account created! Let's set up your business.");
       onSuccess?.();
       if (embedded) {
         window.location.assign(destination);
