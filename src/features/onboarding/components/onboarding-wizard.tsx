@@ -157,7 +157,7 @@ export function OnboardingWizard({
     if (!state.businessType || !state.tenantId) return;
     setLoading(true);
     try {
-      await completeOnboarding({
+      const result = await completeOnboarding({
         tenantId: state.tenantId,
         step1: {
           businessType: state.businessType,
@@ -181,6 +181,12 @@ export function OnboardingWizard({
         step4: { plan: state.plan },
         step5: { modules: Array.from(state.modules) },
       });
+
+      if (result && !result.success) {
+        toast.error(result.error);
+        setLoading(false);
+        return;
+      }
     } catch (error) {
       if (
         error instanceof Error &&

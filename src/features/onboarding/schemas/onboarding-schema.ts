@@ -5,13 +5,28 @@ import {
   type SubscriptionPlan,
 } from "@prisma/client";
 
+function emptyToUndefined(value: unknown): unknown {
+  if (value === "" || value === null || value === undefined) return undefined;
+  return value;
+}
+
+function normalizeOptionalUrl(value: unknown): unknown {
+  const raw = emptyToUndefined(value);
+  if (raw === undefined) return undefined;
+
+  const str = String(raw).trim();
+  if (!str) return undefined;
+  if (/^https?:\/\//i.test(str)) return str;
+  return `https://${str}`;
+}
+
 const optionalEmail = z.preprocess(
-  (value) => (value === "" || value === null || value === undefined ? undefined : value),
+  emptyToUndefined,
   z.string().email().optional()
 );
 
 const optionalUrl = z.preprocess(
-  (value) => (value === "" || value === null || value === undefined ? undefined : value),
+  normalizeOptionalUrl,
   z.string().url().optional()
 );
 
