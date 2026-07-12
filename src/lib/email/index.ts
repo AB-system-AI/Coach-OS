@@ -108,6 +108,20 @@ export async function sendEmail({
   return { id: data.id };
 }
 
+/**
+ * Queue a transactional auth email without blocking the auth handler.
+ * Better Auth recommends not awaiting email sends (timing attacks + handler failures).
+ */
+export function queueAuthEmail(options: SendEmailOptions): void {
+  void sendEmail(options).catch((error) => {
+    console.error("[email:auth] Failed to send auth email:", {
+      to: options.to,
+      subject: options.subject,
+      error: error instanceof Error ? error.message : error,
+    });
+  });
+}
+
 /** Sends the post-registration welcome email (non-blocking for auth flows). */
 export async function sendWelcomeEmail(input: {
   to: string;

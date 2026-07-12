@@ -12,7 +12,7 @@ import {
 import { writeAuditLog } from "@/lib/audit";
 import { isProductionEmailVerificationRequired } from "@/lib/auth/email-verification";
 import {
-  sendEmail,
+  queueAuthEmail,
   sendWelcomeEmail,
   resetPasswordEmail,
   verificationEmail,
@@ -35,7 +35,7 @@ function createAuth() {
       requireEmailVerification: isProductionEmailVerificationRequired(),
       sendResetPassword: async ({ user, url }) => {
         const template = resetPasswordEmail(user.name, url);
-        await sendEmail({
+        queueAuthEmail({
           to: user.email,
           subject: template.subject,
           html: template.html,
@@ -48,11 +48,21 @@ function createAuth() {
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
         const template = verificationEmail(user.name, url);
-        await sendEmail({
+        queueAuthEmail({
           to: user.email,
           subject: template.subject,
           html: template.html,
         });
+      },
+      afterEmailVerification: async (user) => {
+        try {
+          await sendWelcomeEmail({
+            to: user.email,
+            name: user.name,
+          });
+        } catch (error) {
+          console.error("[auth] Failed to send welcome email:", error);
+        }
       },
     },
 
@@ -61,7 +71,7 @@ function createAuth() {
         expiresIn: 60 * 5,
         sendMagicLink: async ({ email, url }) => {
           const template = magicLinkEmail(email, url);
-          await sendEmail({
+          queueAuthEmail({
             to: email,
             subject: template.subject,
             html: template.html,
@@ -105,20 +115,6 @@ function createAuth() {
     },
 
     databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            try {
-              await sendWelcomeEmail({
-                to: user.email,
-                name: user.name,
-              });
-            } catch (error) {
-              console.error("[auth] Failed to send welcome email:", error);
-            }
-          },
-        },
-      },
       session: {
         create: {
           after: async (session, ctx) => {
