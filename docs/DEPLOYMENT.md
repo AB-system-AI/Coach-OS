@@ -165,6 +165,7 @@ Add a custom script or use Vercel's `buildCommand` extension only if you need `m
 |-------|-----|
 | `DATABASE_URL is missing` in dev | Copy `.env.example` → `.env` and set the URL |
 | Better Auth callback errors | Ensure `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` match the live URL |
+| `POST /api/auth/sign-in/email` returns 403 `INVALID_ORIGIN` | Origin must match trusted origins. www/non-www are auto-aliased; for extra domains set `BETTER_AUTH_TRUSTED_ORIGINS` |
 | Prisma client not found on Vercel | `postinstall` and `build` both run `prisma generate` |
 | Build fails on Node version | Use Node 20+ in Vercel project settings |
 

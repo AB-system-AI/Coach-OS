@@ -1,9 +1,10 @@
 import { Resend } from "resend";
-import { isProduction } from "@/lib/env";
+import { isProduction, resolvePublicAppUrl } from "@/lib/env";
 import { readRuntimeEnv } from "@/lib/env/runtime";
 import {
   invoiceEmail,
   paymentReceiptEmail,
+  welcomeEmail,
   type TenantBranding,
 } from "./templates";
 
@@ -33,6 +34,22 @@ interface SendEmailResult {
 }
 
 let resendClient: Resend | null = null;
+
+export function isEmailDeliveryConfigured(): boolean {
+  return readRuntimeEnv("RESEND_API_KEY") !== undefined;
+}
+
+export function resolveFromEmailAddress(override?: string): string {
+  if (override) return override;
+
+  const email = readRuntimeEnv("RESEND_FROM_EMAIL") ?? "noreply@coachos.app";
+  const name =
+    readRuntimeEnv("RESEND_FROM_NAME") ??
+    readRuntimeEnv("NEXT_PUBLIC_APP_NAME") ??
+    "CoachOS";
+
+  return `${name} <${email}>`;
+}
 
 function getResendClient(): Resend {
   if (!resendClient) {
@@ -68,8 +85,7 @@ export async function sendEmail({
     return { id: "dev-skipped" };
   }
 
-  const defaultFrom = readRuntimeEnv("RESEND_FROM_EMAIL") ?? "noreply@coachos.app";
-  const fromAddress = from ?? defaultFrom;
+  const fromAddress = resolveFromEmailAddress(from);
   const recipients = Array.isArray(to) ? to : [to];
 
   const client = getResendClient();
@@ -90,6 +106,26 @@ export async function sendEmail({
   }
 
   return { id: data.id };
+}
+
+/** Sends the post-registration welcome email (non-blocking for auth flows). */
+export async function sendWelcomeEmail(input: {
+  to: string;
+  name: string;
+  loginUrl?: string;
+  branding?: TenantBranding;
+}): Promise<SendEmailResult> {
+  const loginUrl = input.loginUrl ?? `${resolvePublicAppUrl()}/login`;
+  const template = welcomeEmail(input.name, loginUrl, input.branding);
+
+  return sendEmail({
+    to: input.to,
+    subject: template.subject,
+    html: template.html,
+    from: input.branding?.fromEmail
+      ? resolveFromEmailAddress(input.branding.fromEmail)
+      : undefined,
+  });
 }
 
 /** Convenience wrapper used by payment-service */

@@ -64,6 +64,15 @@ export const ENV_MANIFEST: EnvVarDefinition[] = [
     description: "Public app URL for auth callbacks.",
   },
   {
+    name: "BETTER_AUTH_TRUSTED_ORIGINS",
+    required: false,
+    category: "auth",
+    usedIn: ["src/lib/env"],
+    optionalInProduction: true,
+    description:
+      "Comma-separated extra origins for Better Auth CSRF checks (custom domains).",
+  },
+  {
     name: "NEXT_PUBLIC_APP_URL",
     required: false,
     category: "platform",
@@ -110,7 +119,16 @@ export const ENV_MANIFEST: EnvVarDefinition[] = [
     usedIn: ["src/lib/email"],
     safeDefault: "noreply@coachos.app",
     optionalInProduction: true,
-    description: "From address for Resend emails.",
+    description: "From address for Resend emails (must be a verified domain).",
+  },
+  {
+    name: "RESEND_FROM_NAME",
+    required: false,
+    category: "email",
+    usedIn: ["src/lib/email"],
+    safeDefault: "CoachOS",
+    optionalInProduction: true,
+    description: "Display name for the Resend from address.",
   },
   {
     name: "STRIPE_SECRET_KEY",

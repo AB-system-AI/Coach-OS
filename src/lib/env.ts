@@ -200,6 +200,30 @@ export function getDeploymentEnvIssues(): DeploymentEnvIssue[] {
   return issues;
 }
 
+function expandOriginAliases(origin: string): string[] {
+  const aliases = new Set<string>([normalizeOrigin(origin)]);
+
+  try {
+    const url = new URL(origin);
+    const { protocol, hostname, port } = url;
+    const hostWithPort = port ? `${hostname}:${port}` : hostname;
+
+    if (hostname === "127.0.0.1") {
+      aliases.add(`${protocol}//localhost${port ? `:${port}` : ""}`);
+    } else if (hostname === "localhost") {
+      aliases.add(`${protocol}//127.0.0.1${port ? `:${port}` : ""}`);
+    } else if (hostname.startsWith("www.")) {
+      aliases.add(`${protocol}//${hostname.slice(4)}${port ? `:${port}` : ""}`);
+    } else {
+      aliases.add(`${protocol}//www.${hostWithPort}`);
+    }
+  } catch {
+    // ignore malformed origins
+  }
+
+  return Array.from(aliases);
+}
+
 export function getTrustedOrigins(): string[] {
   const origins = new Set<string>();
 
@@ -214,24 +238,29 @@ export function getTrustedOrigins(): string[] {
       : undefined,
   ];
 
+  const platformDomain = readRuntimeEnv("NEXT_PUBLIC_PLATFORM_DOMAIN");
+  if (platformDomain) {
+    candidates.push(`https://${platformDomain}`, `https://www.${platformDomain}`);
+  }
+
+  const extraOrigins = readRuntimeEnv("BETTER_AUTH_TRUSTED_ORIGINS");
+  if (extraOrigins) {
+    for (const part of extraOrigins.split(",")) {
+      const trimmed = part.trim();
+      if (trimmed) candidates.push(trimmed);
+    }
+  }
+
   for (const candidate of candidates) {
-    if (candidate) origins.add(normalizeOrigin(candidate));
+    if (!candidate) continue;
+    for (const alias of expandOriginAliases(candidate)) {
+      origins.add(alias);
+    }
   }
 
   if (origins.size === 0) {
-    origins.add(resolveAuthUrl());
-  }
-
-  for (const origin of [...origins]) {
-    try {
-      const url = new URL(origin);
-      if (url.hostname === "127.0.0.1") {
-        origins.add(origin.replace("127.0.0.1", "localhost"));
-      } else if (url.hostname === "localhost") {
-        origins.add(origin.replace("localhost", "127.0.0.1"));
-      }
-    } catch {
-      // ignore malformed origins
+    for (const alias of expandOriginAliases(resolveAuthUrl())) {
+      origins.add(alias);
     }
   }
 

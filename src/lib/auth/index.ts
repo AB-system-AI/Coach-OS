@@ -13,6 +13,7 @@ import { writeAuditLog } from "@/lib/audit";
 import { isProductionEmailVerificationRequired } from "@/lib/auth/email-verification";
 import {
   sendEmail,
+  sendWelcomeEmail,
   resetPasswordEmail,
   verificationEmail,
   magicLinkEmail,
@@ -104,6 +105,20 @@ function createAuth() {
     },
 
     databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            try {
+              await sendWelcomeEmail({
+                to: user.email,
+                name: user.name,
+              });
+            } catch (error) {
+              console.error("[auth] Failed to send welcome email:", error);
+            }
+          },
+        },
+      },
       session: {
         create: {
           after: async (session, ctx) => {

@@ -68,13 +68,14 @@ export function getAuthenticationServiceStatus(): ServiceStatus {
 
 export function getEmailServiceStatus(): ServiceStatus {
   const configured = hasEnv("RESEND_API_KEY");
+  const fromEmail = readRuntimeEnv("RESEND_FROM_EMAIL");
   return {
     service: "email",
     available: configured,
     configured,
     message: configured
-      ? "Email delivery configured."
-      : "Email delivery is not configured (Resend).",
+      ? `Email delivery configured via Resend${fromEmail ? ` (${fromEmail})` : ""}.`
+      : "Email delivery is not configured (set RESEND_API_KEY).",
   };
 }
 

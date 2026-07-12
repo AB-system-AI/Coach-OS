@@ -19,6 +19,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "vercel:env-setup": "node scripts/vercel-env-setup.mjs",
     "validate:deploy": "node scripts/validate-deployment.mjs",
+    "test:email": "node scripts/test-resend-email.mjs",
     "postinstall": "prisma generate",
     "test:e2e": "playwright test",
     "test:e2e:auth": "npm run build && playwright test e2e/auth",

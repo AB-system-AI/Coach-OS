@@ -7,6 +7,16 @@ import {
   isGuestOnlyRoute,
   isOnboardingRoute,
 } from "@/lib/auth/routes";
+import type { TenantWithRelations } from "@/features/tenancy/types";
+
+async function safeGetCurrentTenant(): Promise<TenantWithRelations | null> {
+  try {
+    return await getCurrentTenant();
+  } catch (error) {
+    console.error("[CoachOS] Tenant lookup failed during redirect:", error);
+    return null;
+  }
+}
 
 function isSafeCallbackUrl(callbackUrl?: string | null): callbackUrl is string {
   return (
@@ -46,7 +56,7 @@ export async function resolveAuthenticatedDestination(
       : AUTH_PATHS.portal;
   }
 
-  const tenant = await getCurrentTenant();
+  const tenant = await safeGetCurrentTenant();
   if (!tenant || !tenant.onboardingCompleted) {
     return AUTH_PATHS.onboarding;
   }
@@ -77,7 +87,7 @@ export async function requireOnboardingPageAccess() {
     redirect("/verify-email");
   }
 
-  const tenant = await getCurrentTenant();
+  const tenant = await safeGetCurrentTenant();
   if (tenant?.onboardingCompleted) {
     redirect(AUTH_PATHS.dashboard);
   }
@@ -95,7 +105,7 @@ export async function requireCoachDashboardAccess() {
     redirect("/verify-email");
   }
 
-  const tenant = await getCurrentTenant();
+  const tenant = await safeGetCurrentTenant();
   if (!tenant || !tenant.onboardingCompleted) {
     redirect(AUTH_PATHS.onboarding);
   }

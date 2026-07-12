@@ -28,6 +28,15 @@ Add these in Vercel → your project → Settings → Environment Variables
   NEXT_PUBLIC_APP_URL
     ${appUrl}
 
+  RESEND_API_KEY
+    Your Resend API key (https://resend.com/api-keys)
+
+  RESEND_FROM_EMAIL
+    Verified sender address, e.g. noreply@yourdomain.com
+
+  RESEND_FROM_NAME
+    CoachOS
+
 After saving, redeploy the project (Deployments → ... → Redeploy).
 
 Then apply the database schema once:

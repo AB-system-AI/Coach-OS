@@ -55,7 +55,8 @@ if (missing.length > 0) {
 console.log("PASS — all required environment variables are set.\n");
 
 const optional = [
-  ["RESEND_API_KEY", "Email (Resend)"],
+  ["RESEND_API_KEY", "Email (Resend) — required for verification, password reset, welcome emails"],
+  ["RESEND_FROM_EMAIL", "Resend verified sender address"],
   ["STRIPE_SECRET_KEY", "Stripe payments"],
   ["PAYMOB_API_KEY", "Paymob payments"],
   ["SENTRY_DSN", "Sentry monitoring"],
