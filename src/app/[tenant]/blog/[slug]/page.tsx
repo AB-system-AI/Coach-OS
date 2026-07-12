@@ -40,7 +40,6 @@ export default async function BlogPostPage({ params }: Props) {
   if (!resolved) notFound();
 
   const { tenant } = resolved;
-  const theme = tenant.theme;
 
   const post = await getPublicBlogPost(tenant.id, slug);
   if (!post || post.status !== "PUBLISHED") notFound();

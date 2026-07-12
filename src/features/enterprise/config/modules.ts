@@ -9,6 +9,32 @@ export type EnterpriseModulePage = {
   actions: { label: string; href: string }[];
 };
 
+/** Modules visible in nav with full implementation. Others show Coming Soon if accessed directly. */
+export const ENTERPRISE_COMING_SOON_SLUGS = new Set<string>([
+  "pos",
+  "payroll",
+  "inventory",
+  "franchise",
+  "affiliate",
+  "membership-cards",
+  "gamification",
+  "multi-brand",
+  "email-builder",
+  "landing-builder",
+  "invoice-designer",
+  "voice-notes",
+  "automation-builder",
+  "help",
+]);
+
+export function isEnterpriseModuleLive(slug: string): boolean {
+  return !ENTERPRISE_COMING_SOON_SLUGS.has(slug);
+}
+
+export function listNavigableEnterprisePages(): EnterpriseModulePage[] {
+  return ENTERPRISE_MODULE_PAGES.filter((page) => isEnterpriseModuleLive(page.slug));
+}
+
 export const ENTERPRISE_MODULE_PAGES: EnterpriseModulePage[] = [
   {
     slug: "finance",

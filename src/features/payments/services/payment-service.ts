@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireTenantAccess } from "@/lib/auth/session";
 import { createProviderPayment } from "@/lib/payments";
+import { assertPaymentProviderConfigured, assertStripeBillingConfigured } from "@/lib/payments/availability";
 import { refundPaymentIntent } from "@/lib/payments/stripe";
 import { writeAuditLog } from "@/lib/audit";
 import { logClientActivity } from "@/lib/activity";
@@ -46,6 +47,7 @@ export async function createPayment(
 
   const currency = data.currency ?? "USD";
   const provider = data.provider ?? "stripe";
+  assertPaymentProviderConfigured(provider);
 
   const intent = await createProviderPayment({
     amount: data.amount,
@@ -107,6 +109,10 @@ export async function refundPayment(
   if (!payment) throw new Error("Payment not found");
   if (payment.status !== "COMPLETED") {
     throw new Error("Only completed payments can be refunded");
+  }
+
+  if (payment.provider === "STRIPE") {
+    assertStripeBillingConfigured();
   }
   if (payment.provider !== "STRIPE") {
     throw new Error("Refunds via API are only supported for Stripe payments");

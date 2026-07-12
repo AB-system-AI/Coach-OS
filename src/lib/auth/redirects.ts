@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentTenant, getSession } from "@/lib/auth/session";
+import { isEmailVerified } from "@/lib/auth/email-verification";
 import {
   AUTH_PATHS,
   getRoleHomePath,
@@ -27,6 +28,10 @@ export async function resolveAuthenticatedDestination(
   const session = await getSession();
   if (!session?.user) {
     return AUTH_PATHS.login;
+  }
+
+  if (!isEmailVerified(session.user)) {
+    return "/verify-email";
   }
 
   const role = session.user.role as string | undefined;
@@ -68,6 +73,10 @@ export async function requireOnboardingPageAccess() {
     redirect(AUTH_PATHS.register);
   }
 
+  if (!isEmailVerified(session.user)) {
+    redirect("/verify-email");
+  }
+
   const tenant = await getCurrentTenant();
   if (tenant?.onboardingCompleted) {
     redirect(AUTH_PATHS.dashboard);
@@ -80,6 +89,10 @@ export async function requireCoachDashboardAccess() {
   const session = await getSession();
   if (!session?.user) {
     redirect(`${AUTH_PATHS.login}?callbackUrl=${encodeURIComponent(AUTH_PATHS.dashboard)}`);
+  }
+
+  if (!isEmailVerified(session.user)) {
+    redirect("/verify-email");
   }
 
   const tenant = await getCurrentTenant();

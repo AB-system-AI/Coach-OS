@@ -15,12 +15,6 @@ export default async function CrmPage() {
     getCrmLeads(tenant.id),
   ]);
 
-  const leadsByStatus = {
-    WON: leads.filter((l) => l.status === "WON"),
-    LOST: leads.filter((l) => l.status === "LOST"),
-    ACTIVE: leads.filter((l) => l.status !== "WON" && l.status !== "LOST"),
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">

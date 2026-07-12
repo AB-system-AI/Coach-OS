@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -47,13 +46,11 @@ export function LandingBuilderModule({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [editingPage, setEditingPage] = useState<LandingPage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ title: "", seoTitle: "", seoDescription: "" });
 
   function openCreate() {
-    setEditingPage(null);
     setForm({ title: "", seoTitle: "", seoDescription: "" });
     setOpen(true);
   }

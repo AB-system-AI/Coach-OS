@@ -17,7 +17,7 @@ const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export async function createInvite(
   payload: InvitePayload,
-  branding?: TenantBranding
+  _branding?: TenantBranding
 ): Promise<{ token: string; inviteUrl: string }> {
   const { email, role, tenantId, inviterId } = payload;
 

@@ -25,7 +25,6 @@ export default async function SearchPage({ params, searchParams }: Props) {
   if (!resolved) notFound();
 
   const { tenant } = resolved;
-  const theme = tenant.theme;
   const query = q?.trim() ?? "";
 
   const results = query.length >= 2

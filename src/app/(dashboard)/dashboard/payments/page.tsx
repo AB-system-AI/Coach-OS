@@ -7,8 +7,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { CreateInvoiceForm } from "./_components/create-invoice-form";
 import { RefundButton } from "./_components/refund-button";
-import { markInvoicePaidAction } from "@/features/payments/actions/payment-actions";
-import { Button } from "@/components/ui/button";
+import { MarkInvoicePaidButton } from "./_components/mark-invoice-paid-button";
 
 export default async function PaymentsPage() {
   const tenant = await getCurrentTenant();
@@ -97,16 +96,7 @@ export default async function PaymentsPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <Badge variant="outline">{inv.status}</Badge>
                   {inv.status === "DRAFT" || inv.status === "SENT" ? (
-                    <form
-                      action={async () => {
-                        "use server";
-                        await markInvoicePaidAction(inv.id);
-                      }}
-                    >
-                      <Button type="submit" size="sm" variant="ghost">
-                        Mark Paid
-                      </Button>
-                    </form>
+                    <MarkInvoicePaidButton invoiceId={inv.id} />
                   ) : null}
                 </div>
               </div>

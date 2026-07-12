@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
-import { XCircle, CheckCircle, UserPlus } from "lucide-react";
+import { XCircle } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,

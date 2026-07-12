@@ -12,13 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -53,7 +46,7 @@ export function StaffModule({
   initialStaff: Staff[];
 }) {
   const router = useRouter();
-  const [staff, setStaff] = useState(initialStaff);
+  const [staff] = useState(initialStaff);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

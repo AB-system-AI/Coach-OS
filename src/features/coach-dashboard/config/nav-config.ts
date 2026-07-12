@@ -57,7 +57,7 @@ import {
 } from "lucide-react";
 import type { TenantModuleKey } from "@prisma/client";
 import type { LucideIcon } from "lucide-react";
-import { ENTERPRISE_MODULE_PAGES } from "@/features/enterprise/config/modules";
+import { listNavigableEnterprisePages } from "@/features/enterprise/config/modules";
 
 export type NavItem = {
   key: string;
@@ -135,7 +135,7 @@ export const MODULE_NAV: NavItem[] = [
   { key: "marketing", href: "/dashboard/marketing", icon: Megaphone, module: "MARKETING", labelKey: "marketing" },
   { key: "marketplace", href: "/dashboard/settings/marketplace", icon: Store, module: "MARKETPLACE", labelKey: "marketplace" },
   { key: "website", href: "/dashboard/website", icon: Globe, labelKey: "website" },
-  ...ENTERPRISE_MODULE_PAGES.map((page) => ({
+  ...listNavigableEnterprisePages().map((page) => ({
     key: page.slug,
     href: `/dashboard/enterprise/${page.slug}`,
     icon: ENTERPRISE_ICONS[page.slug] ?? Settings,

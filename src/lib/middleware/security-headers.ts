@@ -1,4 +1,6 @@
 export function buildSecurityHeaders(): Record<string, string> {
+  // Next.js 15 + Stripe/Google OAuth still require 'unsafe-inline' for scripts/styles.
+  // 'unsafe-eval' is retained for dev tooling and some chart libraries; remove when bundles allow.
   const csp = [
     `default-src 'self'`,
     `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com`,

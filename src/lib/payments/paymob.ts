@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { readRuntimeEnv } from "@/lib/env/runtime";
 
 interface PaymobConfig {
   apiKey: string;
@@ -8,9 +9,9 @@ interface PaymobConfig {
 }
 
 function getPaymobConfig(): PaymobConfig {
-  const apiKey = process.env.PAYMOB_API_KEY;
-  const integrationId = process.env.PAYMOB_INTEGRATION_ID;
-  const iframeId = process.env.PAYMOB_IFRAME_ID;
+  const apiKey = readRuntimeEnv("PAYMOB_API_KEY");
+  const integrationId = readRuntimeEnv("PAYMOB_INTEGRATION_ID");
+  const iframeId = readRuntimeEnv("PAYMOB_IFRAME_ID");
 
   if (!apiKey || !integrationId || !iframeId) {
     throw new Error(
@@ -22,7 +23,7 @@ function getPaymobConfig(): PaymobConfig {
     apiKey,
     integrationId,
     iframeId,
-    hmacSecret: process.env.PAYMOB_HMAC_SECRET,
+    hmacSecret: readRuntimeEnv("PAYMOB_HMAC_SECRET"),
   };
 }
 

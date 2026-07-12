@@ -42,6 +42,13 @@ export function getServiceKindFromError(error: unknown): ServiceKind | null {
     ) {
       return "authentication";
     }
+    if (
+      message.includes("stripe") ||
+      message.includes("paymob") ||
+      message.includes("billing")
+    ) {
+      return "payments";
+    }
   }
 
   return null;

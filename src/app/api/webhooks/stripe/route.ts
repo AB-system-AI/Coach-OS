@@ -5,6 +5,7 @@ import {
   getInvoiceSubscriptionId,
   getSubscriptionPeriod,
 } from "@/lib/payments/stripe-helpers";
+import { readRuntimeEnv } from "@/lib/env/runtime";
 import type Stripe from "stripe";
 import type { SubscriptionPlan, SubscriptionStatus } from "@prisma/client";
 
@@ -13,10 +14,10 @@ export const runtime = "nodejs";
 const STRIPE_PLAN_MAP: Record<string, SubscriptionPlan> = Object.fromEntries(
   (
     [
-      [process.env.STRIPE_PRICE_STARTER, "STARTER"],
-      [process.env.STRIPE_PRICE_PROFESSIONAL, "PROFESSIONAL"],
-      [process.env.STRIPE_PRICE_BUSINESS, "BUSINESS"],
-      [process.env.STRIPE_PRICE_ENTERPRISE, "ENTERPRISE"],
+      [readRuntimeEnv("STRIPE_PRICE_STARTER"), "STARTER"],
+      [readRuntimeEnv("STRIPE_PRICE_PROFESSIONAL"), "PROFESSIONAL"],
+      [readRuntimeEnv("STRIPE_PRICE_BUSINESS"), "BUSINESS"],
+      [readRuntimeEnv("STRIPE_PRICE_ENTERPRISE"), "ENTERPRISE"],
     ] as [string | undefined, SubscriptionPlan][]
   ).filter(([k]) => k)
 ) as Record<string, SubscriptionPlan>;

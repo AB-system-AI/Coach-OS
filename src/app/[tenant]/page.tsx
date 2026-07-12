@@ -10,7 +10,7 @@ import {
   getHomePageStats,
   getPublicGallery,
 } from "@/features/website/services/public-site-service";
-import { Star, ArrowRight, Users, Dumbbell, Clock, Award } from "lucide-react";
+import { Star, ArrowRight, Dumbbell, Clock } from "lucide-react";
 import type { Metadata } from "next";
 
 type TenantHomeProps = {

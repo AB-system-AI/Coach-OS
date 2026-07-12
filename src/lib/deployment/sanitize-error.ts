@@ -47,6 +47,15 @@ export function sanitizeErrorMessageForClient(
     };
   }
 
+  if (service === "payments") {
+    return {
+      title: "Billing temporarily unavailable",
+      description:
+        "Billing is currently being configured. Please contact support to activate your subscription.",
+      service,
+    };
+  }
+
   if (isInternalErrorMessage(error.message)) {
     return {
       title: "Service temporarily unavailable",

@@ -2,7 +2,6 @@ import { getCurrentTenant } from "@/lib/auth/session";
 import { getBookings, getBookingStats } from "@/features/bookings";
 import { getRecoveryServices } from "@/features/recovery";
 import { getClients } from "@/features/clients";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { redirect } from "next/navigation";
 import { BookingsClient } from "./_components/bookings-client";
 

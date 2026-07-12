@@ -20,6 +20,15 @@ export {
 } from "./stripe";
 
 export {
+  assertPaymentProviderConfigured,
+  assertStripeBillingConfigured,
+  BILLING_NOT_CONFIGURED_MESSAGE,
+  isPaymobConfigured,
+  isPaymentProviderConfigured,
+  isStripeConfigured,
+} from "./availability";
+
+export {
   authenticate as authenticatePaymob,
   createOrder as createPaymobOrder,
   getPaymentKey as getPaymobPaymentKey,

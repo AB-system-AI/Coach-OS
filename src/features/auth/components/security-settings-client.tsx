@@ -15,8 +15,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Monitor,
-  Smartphone,
-  Tablet,
   Loader2,
   Shield,
   Clock,
@@ -44,12 +42,6 @@ interface Props {
   devices: UserDeviceEntry[];
 }
 
-function DeviceIcon({ type }: { type: string | null }) {
-  if (type === "mobile") return <Smartphone className="h-4 w-4" />;
-  if (type === "tablet") return <Tablet className="h-4 w-4" />;
-  return <Monitor className="h-4 w-4" />;
-}
-
 function parseUserAgent(ua: string | null): string {
   if (!ua) return "Unknown device";
   if (/firefox/i.test(ua)) return "Firefox";
@@ -60,7 +52,7 @@ function parseUserAgent(ua: string | null): string {
   return "Browser";
 }
 
-export function SecuritySettingsClient({ sessions, loginHistory, devices }: Props) {
+export function SecuritySettingsClient({ sessions, loginHistory, devices: _devices }: Props) {
   const [isPending, startTransition] = useTransition();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);

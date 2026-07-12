@@ -10,32 +10,34 @@ import {
 } from "@/lib/payments/stripe";
 import { getSubscriptionPeriod } from "@/lib/payments/stripe-helpers";
 import { writeAuditLog } from "@/lib/audit";
+import { readRuntimeEnv } from "@/lib/env/runtime";
+import { resolveAuthUrl } from "@/lib/env";
+import {
+  assertStripeBillingConfigured,
+  BILLING_NOT_CONFIGURED_MESSAGE,
+} from "@/lib/payments/availability";
+import { ServiceUnavailableError } from "@/lib/deployment/errors";
 import type { SubscriptionPlan } from "@prisma/client";
 
 // Plan → Stripe Price ID mapping from environment
 const PLAN_PRICE_IDS: Partial<Record<SubscriptionPlan, string | undefined>> = {
-  STARTER: process.env.STRIPE_PRICE_STARTER,
-  PROFESSIONAL: process.env.STRIPE_PRICE_PROFESSIONAL,
-  BUSINESS: process.env.STRIPE_PRICE_BUSINESS,
-  ENTERPRISE: process.env.STRIPE_PRICE_ENTERPRISE,
+  STARTER: readRuntimeEnv("STRIPE_PRICE_STARTER"),
+  PROFESSIONAL: readRuntimeEnv("STRIPE_PRICE_PROFESSIONAL"),
+  BUSINESS: readRuntimeEnv("STRIPE_PRICE_BUSINESS"),
+  ENTERPRISE: readRuntimeEnv("STRIPE_PRICE_ENTERPRISE"),
 };
 
 function getPriceId(plan: SubscriptionPlan): string {
+  assertStripeBillingConfigured();
   const priceId = PLAN_PRICE_IDS[plan];
   if (!priceId) {
-    throw new Error(
-      `Stripe price ID for plan "${plan}" is not configured. ` +
-        `Set STRIPE_PRICE_${plan} in your environment variables.`
-    );
+    throw new ServiceUnavailableError("payments", BILLING_NOT_CONFIGURED_MESSAGE);
   }
   return priceId;
 }
 
 function getBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
+  return readRuntimeEnv("NEXT_PUBLIC_APP_URL") ?? resolveAuthUrl();
 }
 
 // ─── Checkout ────────────────────────────────────────────────────────────────
@@ -45,6 +47,7 @@ export async function createSubscriptionCheckout(
   plan: SubscriptionPlan
 ): Promise<{ url: string }> {
   await requireTenantAccess(tenantId);
+  assertStripeBillingConfigured();
 
   const priceId = getPriceId(plan);
 
@@ -110,6 +113,7 @@ export async function createBillingPortalSession(
   tenantId: string
 ): Promise<{ url: string }> {
   await requireTenantAccess(tenantId);
+  assertStripeBillingConfigured();
 
   const sub = await db.tenantSubscription.findUnique({
     where: { tenantId },
@@ -128,6 +132,13 @@ export async function createBillingPortalSession(
     `${base}/dashboard/settings/subscription`
   );
 
+  await writeAuditLog({
+    tenantId,
+    action: "UPDATE",
+    entity: "BillingPortal",
+    reason: "Billing portal session created",
+  });
+
   return { url: portal.url };
 }
 
@@ -139,6 +150,7 @@ export async function changePlan(
   authorId?: string
 ): Promise<void> {
   await requireTenantAccess(tenantId);
+  assertStripeBillingConfigured();
 
   const sub = await db.tenantSubscription.findUnique({ where: { tenantId } });
 
@@ -184,6 +196,7 @@ export async function cancelSubscription(
   authorId?: string
 ): Promise<void> {
   await requireTenantAccess(tenantId);
+  assertStripeBillingConfigured();
 
   const sub = await db.tenantSubscription.findUnique({ where: { tenantId } });
 
@@ -225,10 +238,10 @@ export async function cancelSubscription(
 const STRIPE_PLAN_MAP: Partial<Record<string, SubscriptionPlan>> = Object.fromEntries(
   (
     [
-      [process.env.STRIPE_PRICE_STARTER, "STARTER"],
-      [process.env.STRIPE_PRICE_PROFESSIONAL, "PROFESSIONAL"],
-      [process.env.STRIPE_PRICE_BUSINESS, "BUSINESS"],
-      [process.env.STRIPE_PRICE_ENTERPRISE, "ENTERPRISE"],
+      [readRuntimeEnv("STRIPE_PRICE_STARTER"), "STARTER"],
+      [readRuntimeEnv("STRIPE_PRICE_PROFESSIONAL"), "PROFESSIONAL"],
+      [readRuntimeEnv("STRIPE_PRICE_BUSINESS"), "BUSINESS"],
+      [readRuntimeEnv("STRIPE_PRICE_ENTERPRISE"), "ENTERPRISE"],
     ] as [string | undefined, SubscriptionPlan][]
   ).filter(([k]) => k)
 ) as Record<string, SubscriptionPlan>;

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
+import { sanitizeErrorMessageForClient } from "@/lib/deployment/sanitize-error";
 
 export default function GlobalError({
   error,
@@ -10,6 +11,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { title, description } = sanitizeErrorMessageForClient(error);
+
   useEffect(() => {
     console.error("[CoachOS] Critical global error:", error);
     Sentry.captureException(error);
@@ -30,11 +33,9 @@ export default function GlobalError({
         >
           <div style={{ maxWidth: "400px", textAlign: "center" }}>
             <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "12px" }}>
-              Critical Error
+              {title}
             </h1>
-            <p style={{ color: "#666", marginBottom: "24px" }}>
-              {error.message ?? "A critical error occurred. Please refresh the page."}
-            </p>
+            <p style={{ color: "#666", marginBottom: "24px" }}>{description}</p>
             {error.digest && (
               <p style={{ fontSize: "12px", color: "#999", fontFamily: "monospace", marginBottom: "16px" }}>
                 Error ID: {error.digest}

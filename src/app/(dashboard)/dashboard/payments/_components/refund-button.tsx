@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatBillingClientError } from "@/lib/billing/client-messages";
 import { refundPaymentAction } from "@/features/payments/actions/payment-actions";
 
 interface Props {
@@ -24,7 +25,7 @@ export function RefundButton({ paymentId, maxAmount, currency }: Props) {
         await refundPaymentAction(formData);
         setOpen(false);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Refund failed");
+        setError(formatBillingClientError(e));
       }
     });
   }

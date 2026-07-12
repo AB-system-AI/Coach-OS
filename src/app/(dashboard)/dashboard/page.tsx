@@ -14,8 +14,14 @@ import { formatCurrency } from "@/lib/utils";
 export default async function DashboardOverviewPage() {
   const tenant = await requireCoachDashboardAccess();
 
-  const [clientCount, bookingCount, programCount, recentPayments] =
-    await Promise.all([
+  let clientCount = 0;
+  let bookingCount = 0;
+  let programCount = 0;
+  let monthlyRevenue = 0;
+  let statsUnavailable = false;
+
+  try {
+    const [clients, bookings, programs, recentPayments] = await Promise.all([
       db.clientProfile.count({ where: { tenantId: tenant.id, isActive: true } }),
       db.booking.count({
         where: {
@@ -35,6 +41,14 @@ export default async function DashboardOverviewPage() {
         _sum: { amount: true },
       }),
     ]);
+    clientCount = clients;
+    bookingCount = bookings;
+    programCount = programs;
+    monthlyRevenue = Number(recentPayments._sum.amount ?? 0);
+  } catch (error) {
+    console.error("[CoachOS] Dashboard overview stats failed:", error);
+    statsUnavailable = true;
+  }
 
   const stats = [
     {
@@ -57,7 +71,7 @@ export default async function DashboardOverviewPage() {
     },
     {
       title: "Revenue This Month",
-      value: formatCurrency(Number(recentPayments._sum.amount ?? 0)),
+      value: formatCurrency(monthlyRevenue),
       icon: CreditCard,
       color: "text-purple-500",
     },
@@ -70,6 +84,11 @@ export default async function DashboardOverviewPage() {
         <p className="text-muted-foreground mt-1">
           Here&apos;s what&apos;s happening with {tenant.name} today.
         </p>
+        {statsUnavailable && (
+          <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+            Live stats are temporarily unavailable. Quick actions and navigation still work.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

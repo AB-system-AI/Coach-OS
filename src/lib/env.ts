@@ -222,6 +222,19 @@ export function getTrustedOrigins(): string[] {
     origins.add(resolveAuthUrl());
   }
 
+  for (const origin of [...origins]) {
+    try {
+      const url = new URL(origin);
+      if (url.hostname === "127.0.0.1") {
+        origins.add(origin.replace("127.0.0.1", "localhost"));
+      } else if (url.hostname === "localhost") {
+        origins.add(origin.replace("localhost", "127.0.0.1"));
+      }
+    } catch {
+      // ignore malformed origins
+    }
+  }
+
   return Array.from(origins);
 }
 

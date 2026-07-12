@@ -8,13 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -64,7 +57,6 @@ export function SmartCalendarModule({
   const [eventOpen, setEventOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<CalendarSyncProvider>("GOOGLE");
   const [eventForm, setEventForm] = useState({
     title: "",
     description: "",

@@ -1,9 +1,8 @@
 import { getCurrentTenant } from "@/lib/auth/session";
-import { getCourse, updateCourse, createCourseSection, createCourseLesson, enrollInCourse, issueCertificate } from "@/features/courses";
+import { getCourse, updateCourse, createCourseSection, createCourseLesson, issueCertificate } from "@/features/courses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -32,7 +31,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             {course.status}
           </Badge>
           <form
-            action={async (formData: FormData) => {
+            action={async (_formData: FormData) => {
               "use server";
               const newStatus = course.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
               await updateCourse(tenant.id, id, { status: newStatus as "DRAFT" | "PUBLISHED" });

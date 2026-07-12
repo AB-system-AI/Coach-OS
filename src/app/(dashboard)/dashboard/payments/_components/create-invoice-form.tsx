@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatBillingClientError } from "@/lib/billing/client-messages";
 import { createInvoiceAction } from "@/features/payments/actions/payment-actions";
 
 export function CreateInvoiceForm() {
@@ -21,7 +22,7 @@ export function CreateInvoiceForm() {
         formRef.current?.reset();
         setOpen(false);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to create invoice");
+        setError(formatBillingClientError(e));
       }
     });
   }

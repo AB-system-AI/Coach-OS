@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth/session";
 import { getPortalRoomMessages } from "@/features/client-portal/services/portal-service";
 import { sendPortalMessage } from "@/features/client-portal/actions/portal-actions";
 import { redirect, notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send } from "lucide-react";

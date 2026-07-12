@@ -9,6 +9,8 @@ import {
   resolveAuthSecret,
   resolveAuthUrl,
 } from "@/lib/env";
+import { writeAuditLog } from "@/lib/audit";
+import { isProductionEmailVerificationRequired } from "@/lib/auth/email-verification";
 import {
   sendEmail,
   resetPasswordEmail,
@@ -29,7 +31,7 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 8,
-      requireEmailVerification: false,
+      requireEmailVerification: isProductionEmailVerificationRequired(),
       sendResetPassword: async ({ user, url }) => {
         const template = resetPasswordEmail(user.name, url);
         await sendEmail({
@@ -142,6 +144,15 @@ function createAuth() {
                   },
                 });
               }
+
+              await writeAuditLog({
+                userId: session.userId,
+                action: "LOGIN",
+                entity: "Session",
+                entityId: session.id,
+                ipAddress: ipAddress ?? undefined,
+                metadata: { userAgent },
+              });
             } catch {
               // Non-fatal: tracking failures must not block session creation
             }

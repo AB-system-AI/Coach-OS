@@ -1,6 +1,8 @@
 import { getAuth } from "@/lib/auth";
 import { getDeploymentEnvIssues } from "@/lib/env";
 import { ServiceUnavailableError } from "@/lib/deployment/errors";
+import { authLimit, checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { readRuntimeEnv } from "@/lib/env/runtime";
 import { toNextJsHandler } from "better-auth/next-js";
 import { NextResponse } from "next/server";
 
@@ -41,6 +43,20 @@ function authConfigErrorResponse(error: unknown) {
 }
 
 async function handle(request: Request) {
+  if (readRuntimeEnv("E2E_DISABLE_RATE_LIMIT") !== "true") {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip") ??
+      "unknown";
+    const limit = await checkRateLimit(`auth:${ip}`, authLimit);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "RATE_LIMITED", message: "Too many requests. Please try again shortly." },
+        { status: 429, headers: rateLimitHeaders(limit) }
+      );
+    }
+  }
+
   try {
     const { GET, POST } = getHandlers();
     if (request.method === "GET") return GET(request);

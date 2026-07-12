@@ -7,6 +7,7 @@ import {
   createBillingPortalAction,
   cancelSubscriptionAction,
 } from "@/features/subscriptions/actions/billing-actions";
+import { formatBillingClientError } from "@/lib/billing/client-messages";
 import type { SubscriptionPlan } from "@prisma/client";
 
 interface UpgradeButtonProps {
@@ -28,7 +29,7 @@ export function UpgradeButton({ plan, currentPlan, hasSubscription }: UpgradeBut
         const { url } = await createSubscriptionCheckoutAction(plan);
         window.location.href = url;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to start checkout");
+        setError(formatBillingClientError(e));
       }
     });
   }
@@ -72,7 +73,7 @@ export function ManageBillingButton({ hasSubscription }: ManageBillingButtonProp
         const { url } = await createBillingPortalAction();
         window.location.href = url;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to open billing portal");
+        setError(formatBillingClientError(e));
       }
     });
   }
@@ -113,8 +114,7 @@ export function CancelSubscriptionButton({
         await cancelSubscriptionAction(false);
         setConfirmed(false);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to cancel subscription");
-        setConfirmed(false);
+        setError(formatBillingClientError(e));
       }
     });
   }

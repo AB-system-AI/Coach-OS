@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { verifyPaymobHmac } from "@/lib/payments/paymob";
+import { readRuntimeEnv } from "@/lib/env/runtime";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const hmacSecret = process.env.PAYMOB_HMAC_SECRET;
+  const hmacSecret = readRuntimeEnv("PAYMOB_HMAC_SECRET");
   if (!hmacSecret) {
     console.error("[Paymob Webhook] PAYMOB_HMAC_SECRET is not configured.");
     return Response.json(

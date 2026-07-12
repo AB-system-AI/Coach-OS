@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth/session";
 import { getPortalNotifications } from "@/features/client-portal/services/portal-service";
 import { markNotificationRead, markAllNotificationsRead } from "@/features/client-portal/actions/portal-actions";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, CheckCheck } from "lucide-react";

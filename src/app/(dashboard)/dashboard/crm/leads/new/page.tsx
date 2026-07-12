@@ -1,6 +1,6 @@
 import { getCurrentTenant } from "@/lib/auth/session";
 import { createCrmLead } from "@/features/crm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ export default async function NewCrmLeadPage() {
           <form
             action={async (formData: FormData) => {
               "use server";
-              const lead = await createCrmLead(tenant.id, {
+              await createCrmLead(tenant.id, {
                 name: formData.get("name") as string,
                 email: (formData.get("email") as string) || undefined,
                 phone: (formData.get("phone") as string) || undefined,

@@ -1,9 +1,8 @@
 import { getCurrentTenant } from "@/lib/auth/session";
-import { getFullReport, getRevenueReport, getClientsReport } from "@/features/reports";
+import { getFullReport } from "@/features/reports";
 import { ReportsDashboard } from "@/features/reports/components/reports-dashboard";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 

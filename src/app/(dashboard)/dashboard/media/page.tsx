@@ -2,7 +2,6 @@ import { getCurrentTenant } from "@/lib/auth/session";
 import { getStorageUsage, STORAGE_CATEGORIES } from "@/features/storage";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { bytesToReadable } from "@/lib/utils";
 import { MediaLibraryClient } from "./_components/media-library-client";
 
 export default async function MediaPage() {

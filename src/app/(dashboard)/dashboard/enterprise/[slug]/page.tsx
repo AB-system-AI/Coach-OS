@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { getCurrentTenant, requireAuth } from "@/lib/auth/session";
-import { getEnterprisePage, getEnterpriseModuleStats } from "@/features/enterprise";
+import { getEnterprisePage, getEnterpriseModuleStats, isEnterpriseModuleLive } from "@/features/enterprise";
 import { isModuleEnabled } from "@/features/modules";
 import { ModuleOverview } from "@/components/layout/module-overview";
+import { ComingSoonPanel } from "@/components/deployment/coming-soon-panel";
 import { redirect, notFound } from "next/navigation";
 import * as svc from "@/features/enterprise/services/enterprise-crud-service";
 import { db } from "@/lib/db";
@@ -52,6 +53,19 @@ export default async function EnterpriseModulePage({ params }: Props) {
 
   const enabled = await isModuleEnabled(tenant.id, page.module);
   if (!enabled) redirect("/dashboard");
+
+  if (!isEnterpriseModuleLive(slug)) {
+    return (
+      <div className="space-y-8">
+        <ModuleOverview
+          title={page.title}
+          description={page.description}
+          stats={[]}
+        />
+        <ComingSoonPanel title={page.title} />
+      </div>
+    );
+  }
 
   if (slug === "media-pro") redirect("/dashboard/media");
 

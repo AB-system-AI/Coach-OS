@@ -1,6 +1,7 @@
 import { CheckCircle, XCircle, MailCheck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { VerifyEmailResend } from "@/features/auth/components/verify-email-resend";
 import {
   Card,
   CardContent,
@@ -93,11 +94,16 @@ export default async function VerifyEmailPage({
             verify your account.
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground text-center">
+        <CardContent className="text-sm text-muted-foreground text-center space-y-4">
+          <p>
+            We sent a verification link to your email address. Click the link to
+            verify your account before signing in.
+          </p>
           <p>
             Didn&apos;t receive the email? Check your spam folder. The link
             expires in 24 hours.
           </p>
+          <VerifyEmailResend />
         </CardContent>
         <CardFooter>
           <Link href="/login" className="w-full">

@@ -1,7 +1,8 @@
 import Stripe from "stripe";
+import { readRuntimeEnv } from "@/lib/env/runtime";
 
 function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = readRuntimeEnv("STRIPE_SECRET_KEY");
   if (!key) {
     throw new Error(
       "STRIPE_SECRET_KEY is not configured. Set it in your environment variables."
@@ -75,7 +76,7 @@ export function constructWebhookEvent(
   rawBody: string,
   signature: string
 ): Stripe.Event {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = readRuntimeEnv("STRIPE_WEBHOOK_SECRET");
   if (!secret) {
     throw new Error(
       "STRIPE_WEBHOOK_SECRET is not configured. Set it in your environment variables."
@@ -136,5 +137,5 @@ export async function cancelStripeSubscription(
 }
 
 export function isApplePayReady(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(readRuntimeEnv("STRIPE_SECRET_KEY"));
 }

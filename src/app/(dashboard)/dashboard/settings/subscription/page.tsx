@@ -2,6 +2,10 @@ import { getCurrentTenant } from "@/lib/auth/session";
 import { PLAN_DEFINITIONS } from "@/features/subscriptions/types/plan-limits";
 import { getPlanSummary } from "@/features/subscriptions/services/usage-tracker";
 import { getTenantSubscription } from "@/features/subscriptions/services/billing-service";
+import {
+  BILLING_NOT_CONFIGURED_MESSAGE,
+  isStripeConfigured,
+} from "@/lib/payments/availability";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { bytesToReadable } from "@/lib/utils";
@@ -68,6 +72,13 @@ export default async function SubscriptionPage({
           />
         </div>
       </div>
+
+      {!isStripeConfigured() && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <p className="text-sm">{BILLING_NOT_CONFIGURED_MESSAGE}</p>
+        </div>
+      )}
 
       {params.checkout === "success" && (
         <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">

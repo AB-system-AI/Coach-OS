@@ -8,7 +8,7 @@ import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { sanitizeErrorMessageForClient } from "@/lib/deployment/sanitize-error";
 
-export default function DashboardError({
+export default function AdminError({
   error,
   reset,
 }: {
@@ -18,12 +18,12 @@ export default function DashboardError({
   const { title, description } = sanitizeErrorMessageForClient(error);
 
   useEffect(() => {
-    console.error("[CoachOS] Dashboard error:", error);
+    console.error("[CoachOS] Admin error:", error);
     Sentry.captureException(error);
   }, [error]);
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="flex items-center justify-center min-h-[60vh] p-6">
       <Card className="max-w-md w-full">
         <CardContent className="pt-8 pb-8 text-center space-y-4">
           <div className="flex justify-center">
@@ -41,7 +41,7 @@ export default function DashboardError({
           <div className="flex gap-3 justify-center">
             <Button onClick={reset} size="sm">Try Again</Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/admin">Admin Home</Link>
             </Button>
           </div>
         </CardContent>

@@ -30,15 +30,12 @@ export default async function PricingPage({ params }: Props) {
 
   const { tenant } = resolved;
   const theme = tenant.theme;
-  const settings = tenant.settings;
 
   const [programs, services, packages] = await Promise.all([
     getPublicPrograms(tenant.id),
     getPublicServices(tenant.id),
     getPublicPackages(tenant.id),
   ]);
-
-  const currency = settings?.currency ?? "USD";
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">

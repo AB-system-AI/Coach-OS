@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 import { signUp } from "@/lib/auth/client";
 import { createTenant } from "@/features/tenancy/actions/tenant-actions";
+import { getPostLoginDestination } from "@/features/auth/actions/redirect-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
@@ -64,12 +65,17 @@ export function RegisterForm({
         });
       }
 
-      toast.success("Account created! Let's set up your business.");
+      const destination = await getPostLoginDestination();
+      toast.success(
+        destination === "/verify-email"
+          ? "Account created! Verify your email to continue."
+          : "Account created! Let's set up your business."
+      );
       onSuccess?.();
       if (embedded) {
-        window.location.assign("/onboarding");
+        window.location.assign(destination);
       } else {
-        router.push("/onboarding");
+        router.push(destination);
       }
     } catch (error) {
       const message =
