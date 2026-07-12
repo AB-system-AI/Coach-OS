@@ -17,8 +17,18 @@ import { redirect } from "next/navigation";
 export async function completeOnboarding(
   input: Parameters<typeof completeOnboardingSchema.parse>[0]
 ) {
-  const data = completeOnboardingSchema.parse(input);
-  const { tenantId, step1, step2, step3, step4, step5 } = data;
+  const parsed = completeOnboardingSchema.safeParse(input);
+  if (!parsed.success) {
+    console.error(
+      "[CoachOS] completeOnboarding validation failed:",
+      parsed.error.flatten()
+    );
+    throw new Error(
+      "Some onboarding fields are invalid. Check contact details and try again."
+    );
+  }
+
+  const { tenantId, step1, step2, step3, step4, step5 } = parsed.data;
 
   await requireTenantAccess(tenantId);
 

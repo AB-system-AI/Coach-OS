@@ -170,7 +170,7 @@ export function OnboardingWizard({
           headingFont: state.fontFamily,
         },
         step3: {
-          businessEmail: state.businessEmail || state.email,
+          businessEmail: state.businessEmail || state.email || userEmail,
           businessPhone: state.businessPhone,
           whatsappNumber: state.whatsappNumber,
           instagramUrl: state.instagramUrl,
@@ -182,6 +182,13 @@ export function OnboardingWizard({
         step5: { modules: Array.from(state.modules) },
       });
     } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message === "NEXT_REDIRECT" ||
+          error.message.includes("NEXT_REDIRECT"))
+      ) {
+        return;
+      }
       toast.error(error instanceof Error ? error.message : "Onboarding failed");
       setLoading(false);
     }

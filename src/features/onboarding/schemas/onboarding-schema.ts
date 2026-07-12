@@ -1,5 +1,19 @@
 import { z } from "zod";
-import type { BusinessType, SubscriptionPlan, TenantModuleKey } from "@prisma/client";
+import {
+  TenantModuleKey,
+  type BusinessType,
+  type SubscriptionPlan,
+} from "@prisma/client";
+
+const optionalEmail = z.preprocess(
+  (value) => (value === "" || value === null || value === undefined ? undefined : value),
+  z.string().email().optional()
+);
+
+const optionalUrl = z.preprocess(
+  (value) => (value === "" || value === null || value === undefined ? undefined : value),
+  z.string().url().optional()
+);
 
 export const onboardingStep1Schema = z.object({
   businessType: z.enum([
@@ -33,16 +47,16 @@ export const onboardingStep2Schema = z.object({
 });
 
 export const onboardingStep3Schema = z.object({
-  businessEmail: z.string().email().optional(),
+  businessEmail: optionalEmail,
   businessPhone: z.string().optional(),
   whatsappNumber: z.string().optional(),
-  facebookUrl: z.string().url().optional().or(z.literal("")),
-  instagramUrl: z.string().url().optional().or(z.literal("")),
-  tiktokUrl: z.string().url().optional().or(z.literal("")),
-  youtubeUrl: z.string().url().optional().or(z.literal("")),
+  facebookUrl: optionalUrl,
+  instagramUrl: optionalUrl,
+  tiktokUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
   city: z.string().optional(),
   country: z.string().optional(),
-  googleMapsUrl: z.string().url().optional().or(z.literal("")),
+  googleMapsUrl: optionalUrl,
 });
 
 export const onboardingStep4Schema = z.object({
@@ -50,13 +64,7 @@ export const onboardingStep4Schema = z.object({
 });
 
 export const onboardingStep5Schema = z.object({
-  modules: z.array(
-    z.enum([
-      "PROGRAMS", "NUTRITION", "RECOVERY", "MARKETPLACE", "COURSES",
-      "BLOG", "SHOP", "BOOKINGS", "AI", "REPORTS", "CRM", "LOYALTY",
-      "CHALLENGES", "COMMUNITY", "AUTOMATION", "MARKETING", "DIGITAL_PRODUCTS",
-    ] as const)
-  ),
+  modules: z.array(z.nativeEnum(TenantModuleKey)),
 });
 
 export const completeOnboardingSchema = z.object({
