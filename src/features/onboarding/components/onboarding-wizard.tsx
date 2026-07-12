@@ -17,6 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Check, ChevronLeft, ChevronRight, Loader2, Dumbbell } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -82,17 +89,21 @@ const initialState: WizardState = {
 type OnboardingWizardProps = {
   existingTenantId?: string;
   existingBusinessName?: string;
+  userEmail?: string;
 };
 
 export function OnboardingWizard({
   existingTenantId,
   existingBusinessName,
+  userEmail,
 }: OnboardingWizardProps) {
   const [step, setStep] = useState(existingTenantId ? 1 : 0);
   const [state, setState] = useState<WizardState>({
     ...initialState,
     tenantId: existingTenantId ?? "",
     businessName: existingBusinessName ?? "",
+    email: userEmail ?? "",
+    businessEmail: userEmail ?? "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -319,15 +330,21 @@ export function OnboardingWizard({
               </div>
               <div className="space-y-2">
                 <Label>Font Family</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border px-3 text-sm"
+                <Select
                   value={state.fontFamily}
-                  onChange={(e) => update("fontFamily", e.target.value)}
+                  onValueChange={(value) => update("fontFamily", value)}
                 >
-                  {["Inter", "Roboto", "Poppins", "Montserrat", "Open Sans"].map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Inter", "Roboto", "Poppins", "Montserrat", "Open Sans"].map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {f}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div
                 className="rounded-lg p-6 text-center"
