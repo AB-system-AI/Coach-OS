@@ -1,5 +1,6 @@
-import { getSession } from "@/lib/auth/session";
+import { getSession, resolveSessionUserRole } from "@/lib/auth/session";
 import { AUTH_PATHS, resolveAuthenticatedDestination } from "@/lib/auth/redirects";
+import { isClientRole } from "@/lib/auth/routes";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -45,7 +46,8 @@ export default async function PortalLayout({ children }: { children: React.React
       redirect(`${AUTH_PATHS.login}?callbackUrl=${encodeURIComponent(AUTH_PATHS.portal)}`);
     }
 
-    if (session.user.role !== "CLIENT") {
+    const role = await resolveSessionUserRole(session.user);
+    if (!isClientRole(role)) {
       redirect(await resolveAuthenticatedDestination());
     }
 
@@ -54,58 +56,64 @@ export default async function PortalLayout({ children }: { children: React.React
       include: { tenant: { include: { theme: true } } },
     });
 
-    if (!membership) {
-      redirect(AUTH_PATHS.login);
-    }
-
-    const tenant = membership.tenant;
+    const tenantName = membership?.tenant.name ?? "Client Portal";
 
     return (
-    <div className="flex min-h-screen bg-muted/30">
-      <aside className="hidden md:flex w-64 flex-col border-r bg-background fixed inset-y-0">
-        <div className="flex h-16 items-center border-b px-6">
-          <span className="font-bold text-lg truncate">{tenant.name}</span>
-        </div>
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {portalNav.map(({ label, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <div className="border-t p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
-              {session.user.name?.charAt(0)?.toUpperCase() ?? "C"}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{session.user.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
-            </div>
+      <div className="flex min-h-screen bg-muted/30">
+        <aside className="hidden md:flex w-64 flex-col border-r bg-background fixed inset-y-0">
+          <div className="flex h-16 items-center border-b px-6">
+            <span className="font-bold text-lg truncate">{tenantName}</span>
           </div>
-          <Link
-            href="/api/auth/sign-out"
-            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign out
-          </Link>
-        </div>
-      </aside>
+          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            {portalNav.map(({ label, href, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="border-t p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                {session.user.name?.charAt(0)?.toUpperCase() ?? "C"}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{session.user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+              </div>
+            </div>
+            <Link
+              href="/api/auth/sign-out"
+              className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </Link>
+          </div>
+        </aside>
 
-      <div className="flex-1 md:ms-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-background/80 backdrop-blur-lg px-6 md:hidden">
-          <span className="font-bold">{tenant.name}</span>
-          <span className="ms-auto text-sm text-muted-foreground">{session.user.name}</span>
-        </header>
-        <main className="p-6">{children}</main>
+        <div className="flex-1 md:ms-64">
+          <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-background/80 backdrop-blur-lg px-6 md:hidden">
+            <span className="font-bold">{tenantName}</span>
+            <span className="ms-auto text-sm text-muted-foreground">{session.user.name}</span>
+          </header>
+          <main className="p-6">
+            {!membership ? (
+              <div className="rounded-xl border bg-background p-8 text-center text-muted-foreground">
+                <p className="font-medium text-foreground">Your client portal is being set up</p>
+                <p className="mt-2 text-sm">
+                  You are signed in, but no coach workspace is linked to this account yet.
+                </p>
+              </div>
+            ) : null}
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
     );
   } catch (error) {
     if (error instanceof ServiceUnavailableError) {

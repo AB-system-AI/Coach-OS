@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
-import { getCurrentTenant, getSession } from "@/lib/auth/session";
+import { getCurrentTenant, getSession, resolveSessionUserRole } from "@/lib/auth/session";
 import { isEmailVerified } from "@/lib/auth/email-verification";
 import {
   AUTH_PATHS,
   getRoleHomePath,
+  isClientRole,
+  isCoachRole,
   isGuestOnlyRoute,
   isOnboardingRoute,
 } from "@/lib/auth/routes";
@@ -28,6 +30,16 @@ function isSafeCallbackUrl(callbackUrl?: string | null): callbackUrl is string {
   );
 }
 
+function isRoleScopedCallback(
+  role: string | null,
+  callbackUrl: string
+): boolean {
+  if (role === "SUPER_ADMIN") return callbackUrl.startsWith("/admin");
+  if (isClientRole(role)) return callbackUrl.startsWith("/portal");
+  if (isCoachRole(role)) return callbackUrl.startsWith("/dashboard");
+  return false;
+}
+
 /**
  * Single source of truth for where an authenticated user should land.
  * Coaches with incomplete onboarding always go to onboarding (never dashboard).
@@ -44,28 +56,34 @@ export async function resolveAuthenticatedDestination(
     return "/verify-email";
   }
 
-  const role = session.user.role as string | undefined;
+  const role = await resolveSessionUserRole(session.user);
 
   if (role === "SUPER_ADMIN") {
-    return AUTH_PATHS.admin;
+    return isSafeCallbackUrl(callbackUrl) && isRoleScopedCallback(role, callbackUrl)
+      ? callbackUrl
+      : AUTH_PATHS.admin;
   }
 
-  if (role === "CLIENT") {
+  if (isClientRole(role)) {
     return isSafeCallbackUrl(callbackUrl) && callbackUrl.startsWith("/portal")
       ? callbackUrl
       : AUTH_PATHS.portal;
   }
 
-  const tenant = await safeGetCurrentTenant();
-  if (!tenant || !tenant.onboardingCompleted) {
-    return AUTH_PATHS.onboarding;
+  if (isCoachRole(role)) {
+    const tenant = await safeGetCurrentTenant();
+    if (!tenant || !tenant.onboardingCompleted) {
+      return AUTH_PATHS.onboarding;
+    }
+
+    if (isSafeCallbackUrl(callbackUrl) && callbackUrl.startsWith("/dashboard")) {
+      return callbackUrl;
+    }
+
+    return AUTH_PATHS.dashboard;
   }
 
-  if (isSafeCallbackUrl(callbackUrl) && callbackUrl.startsWith("/dashboard")) {
-    return callbackUrl;
-  }
-
-  return AUTH_PATHS.dashboard;
+  return getRoleHomePath(role, callbackUrl);
 }
 
 export async function redirectIfAuthenticated(
@@ -87,6 +105,11 @@ export async function requireOnboardingPageAccess() {
     redirect("/verify-email");
   }
 
+  const role = await resolveSessionUserRole(session.user);
+  if (!isCoachRole(role)) {
+    redirect(await resolveAuthenticatedDestination());
+  }
+
   const tenant = await safeGetCurrentTenant();
   if (tenant?.onboardingCompleted) {
     redirect(AUTH_PATHS.dashboard);
@@ -103,6 +126,14 @@ export async function requireCoachDashboardAccess() {
 
   if (!isEmailVerified(session.user)) {
     redirect("/verify-email");
+  }
+
+  const role = await resolveSessionUserRole(session.user);
+  if (role === "SUPER_ADMIN") {
+    redirect(AUTH_PATHS.admin);
+  }
+  if (isClientRole(role)) {
+    redirect(AUTH_PATHS.portal);
   }
 
   const tenant = await safeGetCurrentTenant();

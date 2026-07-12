@@ -18,6 +18,30 @@ export async function getSession() {
   }
 }
 
+/** Authoritative role from the database (session JWT may be stale after signup). */
+export async function getUserRoleFromDb(
+  userId: string
+): Promise<UserRole | null> {
+  if (!isDatabaseConfigured()) return null;
+
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    return user?.role ?? null;
+  } catch (error) {
+    console.error("[CoachOS] getUserRoleFromDb failed:", error);
+    return null;
+  }
+}
+
+export async function resolveSessionUserRole(
+  user: { id: string; role?: string | null }
+): Promise<UserRole | string | null> {
+  return (await getUserRoleFromDb(user.id)) ?? user.role ?? null;
+}
+
 export async function requireAuth() {
   const session = await getSession();
   if (!session?.user) {

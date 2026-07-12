@@ -1,3 +1,11 @@
+export function isCoachRole(role?: string | null): boolean {
+  return role === "COACH" || role === "ASSISTANT_COACH";
+}
+
+export function isClientRole(role?: string | null): boolean {
+  return role === "CLIENT";
+}
+
 export const AUTH_PATHS = {
   login: "/login",
   register: "/register",

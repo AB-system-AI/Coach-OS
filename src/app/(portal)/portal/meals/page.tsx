@@ -59,7 +59,7 @@ export default async function PortalMealsPage() {
                               <ul className="mt-1 space-y-0.5">
                                 {meal.recipes.map((mr) => (
                                   <li key={mr.id} className="text-xs text-muted-foreground">
-                                    • {mr.recipe.name}
+                                    • {mr.recipe?.name ?? "Recipe"}
                                   </li>
                                 ))}
                               </ul>

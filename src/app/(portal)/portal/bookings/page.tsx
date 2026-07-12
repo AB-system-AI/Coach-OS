@@ -50,14 +50,14 @@ export default async function PortalBookingsPage() {
         <Card>
           <CardHeader><CardTitle>Upcoming Sessions</CardTitle></CardHeader>
           <CardContent className="divide-y">
-            {upcoming.map((b) => (
+            {bookings.map((b) => (
               <div key={b.id} className="flex items-center justify-between py-3">
                 <div>
-                  <p className="font-medium text-sm">{b.service.name}</p>
+                  <p className="font-medium text-sm">{b.service?.name ?? "Session"}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(b.date).toLocaleDateString()} at{" "}
                     {b.startTime ?? "TBD"}
-                    {b.service.duration && ` · ${b.service.duration} min`}
+                    {b.service?.duration && ` · ${b.service.duration} min`}
                   </p>
                 </div>
                 <div className="text-end">
@@ -81,7 +81,7 @@ export default async function PortalBookingsPage() {
             {past.map((b) => (
               <div key={b.id} className="flex items-center justify-between py-3">
                 <div>
-                  <p className="font-medium text-sm">{b.service.name}</p>
+                  <p className="font-medium text-sm">{b.service?.name ?? "Session"}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(b.date).toLocaleDateString()}
                     {b.notes && ` · ${b.notes}`}
