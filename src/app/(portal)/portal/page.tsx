@@ -16,7 +16,7 @@ export default async function ClientPortalPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold">My Dashboard</h2>
+          <h2 className="text-2xl font-bold">My Coaching</h2>
           <p className="text-muted-foreground">
             Workouts, meals, progress, bookings, and messages.
           </p>
@@ -36,7 +36,7 @@ export default async function ClientPortalPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold">My Dashboard</h2>
+        <h2 className="text-2xl font-bold">My Coaching</h2>
         <p className="text-muted-foreground">
           Workouts, meals, progress, bookings, and messages.
         </p>

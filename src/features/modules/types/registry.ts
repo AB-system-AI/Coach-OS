@@ -34,7 +34,7 @@ export const MODULE_REGISTRY: Record<TenantModuleKey, ModuleDefinition> = {
   MARKETPLACE: {
     key: "MARKETPLACE",
     name: "Marketplace",
-    description: "Public profile on TrainerOS marketplace",
+    description: "Public profile on CoachOS marketplace",
     icon: "Store",
     minPlan: "STARTER",
     defaultEnabled: false,
@@ -368,24 +368,303 @@ export type BusinessTypeDefinition = {
   recommendedModules: TenantModuleKey[];
 };
 
+const CORE_AUTO_MODULES: TenantModuleKey[] = [
+  "PROGRAMS",
+  "NUTRITION",
+  "RECOVERY",
+  "BOOKINGS",
+  "REPORTS",
+  "BLOG",
+  "MARKETING",
+  "FINANCE",
+  "SMART_CALENDAR",
+  "NOTIFICATION_CENTER",
+  "HELP_CENTER",
+  "MARKETPLACE",
+  "CRM",
+  "MEDIA_PRO",
+];
+
+const BUSINESS_AUTO_MODULES: Record<BusinessType, TenantModuleKey[]> = {
+  FITNESS_COACH: [
+    ...CORE_AUTO_MODULES,
+    "CHALLENGES",
+    "AUTOMATION",
+    "DIGITAL_PRODUCTS",
+    "CLIENT_APP",
+  ],
+  PERSONAL_TRAINER: [
+    ...CORE_AUTO_MODULES,
+    "AUTOMATION",
+    "CHALLENGES",
+    "CLIENT_APP",
+  ],
+  NUTRITION_COACH: [
+    ...CORE_AUTO_MODULES,
+    "DIGITAL_PRODUCTS",
+    "COURSES",
+    "AUTOMATION",
+    "CLIENT_APP",
+  ],
+  GYM: [
+    ...CORE_AUTO_MODULES,
+    "ATTENDANCE",
+    "LOYALTY",
+    "COMMUNITY",
+    "SHOP",
+    "STAFF",
+    "MEMBERSHIP_CARDS",
+    "POS",
+    "INVENTORY",
+    "CLIENT_APP",
+  ],
+  FITNESS_ACADEMY: [
+    ...CORE_AUTO_MODULES,
+    "COURSES",
+    "COMMUNITY",
+    "CHALLENGES",
+    "STAFF",
+    "CLIENT_APP",
+  ],
+  FOOTBALL_COACH: [
+    ...CORE_AUTO_MODULES,
+    "COURSES",
+    "CHALLENGES",
+    "CLIENT_APP",
+  ],
+  SWIMMING_COACH: [
+    ...CORE_AUTO_MODULES,
+    "COURSES",
+    "CLIENT_APP",
+  ],
+  CROSSFIT_COACH: [
+    ...CORE_AUTO_MODULES,
+    "CHALLENGES",
+    "COMMUNITY",
+    "ATTENDANCE",
+    "CLIENT_APP",
+  ],
+  YOGA_INSTRUCTOR: [
+    ...CORE_AUTO_MODULES,
+    "COURSES",
+    "DIGITAL_PRODUCTS",
+    "CLIENT_APP",
+  ],
+  PILATES_INSTRUCTOR: [
+    ...CORE_AUTO_MODULES,
+    "COURSES",
+    "CLIENT_APP",
+  ],
+  BOXING_COACH: [
+    ...CORE_AUTO_MODULES,
+    "CHALLENGES",
+    "CLIENT_APP",
+  ],
+  MARTIAL_ARTS_COACH: [
+    ...CORE_AUTO_MODULES,
+    "COURSES",
+    "LOYALTY",
+    "CLIENT_APP",
+  ],
+  RUNNING_COACH: [
+    ...CORE_AUTO_MODULES,
+    "CHALLENGES",
+    "CLIENT_APP",
+  ],
+  CYCLING_COACH: [
+    ...CORE_AUTO_MODULES,
+    "CHALLENGES",
+    "CLIENT_APP",
+  ],
+  PHYSIOTHERAPIST: [
+    ...CORE_AUTO_MODULES,
+    "DIGITAL_PRODUCTS",
+    "AUTOMATION",
+    "FORMS_BUILDER",
+    "CLIENT_APP",
+  ],
+  REHABILITATION_CENTER: [
+    ...CORE_AUTO_MODULES,
+    "AUTOMATION",
+    "STAFF",
+    "FORMS_BUILDER",
+    "ATTENDANCE",
+    "CLIENT_APP",
+  ],
+  SPORTS_CLINIC: [
+    ...CORE_AUTO_MODULES,
+    "STAFF",
+    "FORMS_BUILDER",
+    "CLIENT_APP",
+  ],
+};
+
+export const COACHING_SPECIALTIES: Record<BusinessType, string[]> = {
+  FITNESS_COACH: [
+    "Strength Training",
+    "Weight Loss",
+    "Body Transformation",
+    "Functional Fitness",
+    "HIIT",
+  ],
+  PERSONAL_TRAINER: [
+    "1-on-1 Training",
+    "Strength & Conditioning",
+    "Fat Loss",
+    "Muscle Building",
+    "Senior Fitness",
+  ],
+  NUTRITION_COACH: [
+    "Meal Planning",
+    "Macro Coaching",
+    "Sports Nutrition",
+    "Weight Management",
+    "Plant-Based Nutrition",
+  ],
+  GYM: [
+    "Group Classes",
+    "Strength Training",
+    "Cardio",
+    "Cross-Training",
+    "Youth Fitness",
+  ],
+  FITNESS_ACADEMY: [
+    "Coach Certification",
+    "Sports Science",
+    "Youth Development",
+    "Elite Performance",
+    "Group Training",
+  ],
+  FOOTBALL_COACH: [
+    "Youth Football",
+    "Tactical Training",
+    "Goalkeeper Coaching",
+    "Fitness for Football",
+    "Team Development",
+  ],
+  SWIMMING_COACH: [
+    "Learn to Swim",
+    "Competitive Swimming",
+    "Open Water",
+    "Triathlon Swimming",
+    "Adult Swimming",
+  ],
+  CROSSFIT_COACH: [
+    "CrossFit WODs",
+    "Olympic Lifting",
+    "Competition Prep",
+    "Beginner CrossFit",
+    "Mobility & Recovery",
+  ],
+  YOGA_INSTRUCTOR: [
+    "Vinyasa Flow",
+    "Hatha Yoga",
+    "Yin Yoga",
+    "Prenatal Yoga",
+    "Meditation",
+  ],
+  PILATES_INSTRUCTOR: [
+    "Mat Pilates",
+    "Reformer Pilates",
+    "Clinical Pilates",
+    "Prenatal Pilates",
+    "Post-Rehab Pilates",
+  ],
+  BOXING_COACH: [
+    "Boxing Fundamentals",
+    "Competition Prep",
+    "Fitness Boxing",
+    "Pad Work",
+    "Self-Defense",
+  ],
+  MARTIAL_ARTS_COACH: [
+    "Brazilian Jiu-Jitsu",
+    "MMA",
+    "Karate",
+    "Muay Thai",
+    "Kids Martial Arts",
+  ],
+  RUNNING_COACH: [
+    "Marathon Training",
+    "5K/10K Prep",
+    "Trail Running",
+    "Speed Development",
+    "Beginner Running",
+  ],
+  CYCLING_COACH: [
+    "Road Cycling",
+    "Indoor Cycling",
+    "Triathlon Cycling",
+    "Mountain Biking",
+    "Endurance Training",
+  ],
+  PHYSIOTHERAPIST: [
+    "Sports Injury Rehab",
+    "Post-Surgery Recovery",
+    "Manual Therapy",
+    "Dry Needling",
+    "Movement Assessment",
+  ],
+  REHABILITATION_CENTER: [
+    "Orthopedic Rehab",
+    "Neurological Rehab",
+    "Sports Recovery",
+    "Pain Management",
+    "Post-Injury Programs",
+  ],
+  SPORTS_CLINIC: [
+    "Sports Medicine",
+    "Injury Prevention",
+    "Performance Testing",
+    "Return to Sport",
+    "Biomechanics",
+  ],
+};
+
+export function getAutoEnabledModules(businessType: BusinessType): TenantModuleKey[] {
+  return BUSINESS_AUTO_MODULES[businessType] ?? CORE_AUTO_MODULES;
+}
+
+export function getRecommendedModules(
+  businessType: BusinessType
+): TenantModuleKey[] {
+  return getAutoEnabledModules(businessType);
+}
+
+/** Nav items hidden from coach dashboard — technical / super-admin only */
+export const COACH_HIDDEN_NAV_KEYS = new Set([
+  "enterprise",
+  "mobile-api",
+  "audit",
+  "backup",
+  "theme-builder",
+  "landing-builder",
+  "email-builder",
+  "automation-builder",
+  "voice-notes",
+  "multi-brand",
+  "franchise",
+  "security",
+]);
+
 export const BUSINESS_TYPES: BusinessTypeDefinition[] = [
-  { type: "FITNESS_COACH", label: "Fitness Coach", description: "General fitness coaching", category: "coaching", recommendedModules: ["PROGRAMS", "NUTRITION", "RECOVERY", "MARKETPLACE"] },
-  { type: "PERSONAL_TRAINER", label: "Personal Trainer", description: "1-on-1 personal training", category: "coaching", recommendedModules: ["PROGRAMS", "BOOKINGS", "CRM", "MARKETPLACE"] },
-  { type: "NUTRITION_COACH", label: "Nutrition Coach", description: "Meal plans and nutrition", category: "coaching", recommendedModules: ["NUTRITION", "DIGITAL_PRODUCTS", "COURSES"] },
-  { type: "GYM", label: "Gym", description: "Fitness facility", category: "facility", recommendedModules: ["BOOKINGS", "SHOP", "LOYALTY", "COMMUNITY"] },
-  { type: "FITNESS_ACADEMY", label: "Fitness Academy", description: "Training academy", category: "facility", recommendedModules: ["COURSES", "PROGRAMS", "COMMUNITY", "CRM"] },
-  { type: "FOOTBALL_COACH", label: "Football Coach", description: "Soccer/football coaching", category: "coaching", recommendedModules: ["PROGRAMS", "COURSES", "CHALLENGES"] },
-  { type: "SWIMMING_COACH", label: "Swimming Coach", description: "Swim coaching", category: "coaching", recommendedModules: ["PROGRAMS", "BOOKINGS", "COURSES"] },
-  { type: "CROSSFIT_COACH", label: "CrossFit Coach", description: "CrossFit box coaching", category: "coaching", recommendedModules: ["PROGRAMS", "CHALLENGES", "COMMUNITY"] },
-  { type: "YOGA_INSTRUCTOR", label: "Yoga Instructor", description: "Yoga classes and retreats", category: "coaching", recommendedModules: ["COURSES", "BOOKINGS", "DIGITAL_PRODUCTS"] },
-  { type: "PILATES_INSTRUCTOR", label: "Pilates Instructor", description: "Pilates instruction", category: "coaching", recommendedModules: ["COURSES", "BOOKINGS", "PROGRAMS"] },
-  { type: "BOXING_COACH", label: "Boxing Coach", description: "Boxing and combat sports", category: "coaching", recommendedModules: ["PROGRAMS", "BOOKINGS", "CHALLENGES"] },
-  { type: "MARTIAL_ARTS_COACH", label: "Martial Arts Coach", description: "Martial arts dojo", category: "coaching", recommendedModules: ["PROGRAMS", "COURSES", "LOYALTY"] },
-  { type: "RUNNING_COACH", label: "Running Coach", description: "Running and endurance", category: "coaching", recommendedModules: ["PROGRAMS", "CHALLENGES", "REPORTS"] },
-  { type: "CYCLING_COACH", label: "Cycling Coach", description: "Cycling coaching", category: "coaching", recommendedModules: ["PROGRAMS", "CHALLENGES", "BOOKINGS"] },
-  { type: "PHYSIOTHERAPIST", label: "Physiotherapist", description: "Physical therapy", category: "therapy", recommendedModules: ["RECOVERY", "BOOKINGS", "CRM", "DIGITAL_PRODUCTS"] },
-  { type: "REHABILITATION_CENTER", label: "Rehabilitation Center", description: "Rehab facility", category: "therapy", recommendedModules: ["RECOVERY", "BOOKINGS", "CRM", "AUTOMATION"] },
-  { type: "SPORTS_CLINIC", label: "Sports Clinic", description: "Sports medicine clinic", category: "therapy", recommendedModules: ["RECOVERY", "BOOKINGS", "CRM", "REPORTS"] },
+  { type: "FITNESS_COACH", label: "Fitness Coach", description: "General fitness coaching", category: "coaching", recommendedModules: getAutoEnabledModules("FITNESS_COACH") },
+  { type: "PERSONAL_TRAINER", label: "Personal Trainer", description: "1-on-1 personal training", category: "coaching", recommendedModules: getAutoEnabledModules("PERSONAL_TRAINER") },
+  { type: "NUTRITION_COACH", label: "Nutrition Coach", description: "Meal plans and nutrition", category: "coaching", recommendedModules: getAutoEnabledModules("NUTRITION_COACH") },
+  { type: "GYM", label: "Gym", description: "Fitness facility", category: "facility", recommendedModules: getAutoEnabledModules("GYM") },
+  { type: "FITNESS_ACADEMY", label: "Fitness Academy", description: "Training academy", category: "facility", recommendedModules: getAutoEnabledModules("FITNESS_ACADEMY") },
+  { type: "FOOTBALL_COACH", label: "Football Coach", description: "Soccer/football coaching", category: "coaching", recommendedModules: getAutoEnabledModules("FOOTBALL_COACH") },
+  { type: "SWIMMING_COACH", label: "Swimming Coach", description: "Swim coaching", category: "coaching", recommendedModules: getAutoEnabledModules("SWIMMING_COACH") },
+  { type: "CROSSFIT_COACH", label: "CrossFit Coach", description: "CrossFit box coaching", category: "coaching", recommendedModules: getAutoEnabledModules("CROSSFIT_COACH") },
+  { type: "YOGA_INSTRUCTOR", label: "Yoga Instructor", description: "Yoga classes and retreats", category: "coaching", recommendedModules: getAutoEnabledModules("YOGA_INSTRUCTOR") },
+  { type: "PILATES_INSTRUCTOR", label: "Pilates Instructor", description: "Pilates instruction", category: "coaching", recommendedModules: getAutoEnabledModules("PILATES_INSTRUCTOR") },
+  { type: "BOXING_COACH", label: "Boxing Coach", description: "Boxing and combat sports", category: "coaching", recommendedModules: getAutoEnabledModules("BOXING_COACH") },
+  { type: "MARTIAL_ARTS_COACH", label: "Martial Arts Coach", description: "Martial arts dojo", category: "coaching", recommendedModules: getAutoEnabledModules("MARTIAL_ARTS_COACH") },
+  { type: "RUNNING_COACH", label: "Running Coach", description: "Running and endurance", category: "coaching", recommendedModules: getAutoEnabledModules("RUNNING_COACH") },
+  { type: "CYCLING_COACH", label: "Cycling Coach", description: "Cycling coaching", category: "coaching", recommendedModules: getAutoEnabledModules("CYCLING_COACH") },
+  { type: "PHYSIOTHERAPIST", label: "Physiotherapist", description: "Physical therapy", category: "therapy", recommendedModules: getAutoEnabledModules("PHYSIOTHERAPIST") },
+  { type: "REHABILITATION_CENTER", label: "Rehabilitation Center", description: "Rehab facility", category: "therapy", recommendedModules: getAutoEnabledModules("REHABILITATION_CENTER") },
+  { type: "SPORTS_CLINIC", label: "Sports Clinic", description: "Sports medicine clinic", category: "therapy", recommendedModules: getAutoEnabledModules("SPORTS_CLINIC") },
 ];
 
 export const ALL_MODULE_KEYS = Object.keys(MODULE_REGISTRY) as TenantModuleKey[];
@@ -404,11 +683,4 @@ export function isPlanSufficient(
 ): boolean {
   if (!required) return true;
   return PLAN_ORDER.indexOf(current) >= PLAN_ORDER.indexOf(required);
-}
-
-export function getRecommendedModules(
-  businessType: BusinessType
-): TenantModuleKey[] {
-  const def = BUSINESS_TYPES.find((b) => b.type === businessType);
-  return def?.recommendedModules ?? ["PROGRAMS", "BOOKINGS", "REPORTS"];
 }

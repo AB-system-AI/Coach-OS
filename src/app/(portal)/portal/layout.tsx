@@ -22,15 +22,15 @@ import {
 } from "lucide-react";
 
 const portalNav = [
-  { label: "Dashboard", href: "/portal", icon: LayoutDashboard },
-  { label: "Programs", href: "/portal/programs", icon: Dumbbell },
-  { label: "Meals", href: "/portal/meals", icon: Salad },
-  { label: "Progress", href: "/portal/progress", icon: TrendingUp },
-  { label: "Bookings", href: "/portal/bookings", icon: Calendar },
-  { label: "Invoices", href: "/portal/invoices", icon: Receipt },
-  { label: "Notifications", href: "/portal/notifications", icon: Bell },
-  { label: "Messages", href: "/portal/messages", icon: MessageSquare },
-  { label: "Downloads", href: "/portal/downloads", icon: Download },
+  { label: "My Coaching", href: "/portal", icon: LayoutDashboard },
+  { label: "My Programs", href: "/portal/programs", icon: Dumbbell },
+  { label: "My Meals", href: "/portal/meals", icon: Salad },
+  { label: "My Progress", href: "/portal/progress", icon: TrendingUp },
+  { label: "My Bookings", href: "/portal/bookings", icon: Calendar },
+  { label: "My Payments", href: "/portal/invoices", icon: Receipt },
+  { label: "Updates", href: "/portal/notifications", icon: Bell },
+  { label: "Coach Chat", href: "/portal/messages", icon: MessageSquare },
+  { label: "My Documents", href: "/portal/downloads", icon: Download },
   { label: "Certificates", href: "/portal/certificates", icon: Award },
 ];
 
@@ -56,7 +56,7 @@ export default async function PortalLayout({ children }: { children: React.React
       include: { tenant: { include: { theme: true } } },
     });
 
-    const tenantName = membership?.tenant.name ?? "Client Portal";
+    const tenantName = membership?.tenant.name ?? "My Coaching";
 
     return (
       <div className="flex min-h-screen bg-muted/30">
@@ -104,7 +104,7 @@ export default async function PortalLayout({ children }: { children: React.React
           <main className="p-6">
             {!membership ? (
               <div className="rounded-xl border bg-background p-8 text-center text-muted-foreground">
-                <p className="font-medium text-foreground">Your client portal is being set up</p>
+                <p className="font-medium text-foreground">Your coaching experience is being set up</p>
                 <p className="mt-2 text-sm">
                   You are signed in, but no coach workspace is linked to this account yet.
                 </p>

@@ -5,7 +5,7 @@ export default async function OnboardingPage() {
   const { session, tenant } = await requireOnboardingPageAccess();
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-muted/30">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-background via-muted/30 to-primary/5">
       <OnboardingWizard
         existingTenantId={tenant?.id}
         existingBusinessName={tenant?.name}

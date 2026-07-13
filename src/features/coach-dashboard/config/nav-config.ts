@@ -52,7 +52,6 @@ import {
   Lock,
   Smartphone,
   TabletSmartphone,
-  LineChart,
   TrendingUp,
 } from "lucide-react";
 import type { TenantModuleKey } from "@prisma/client";
@@ -68,14 +67,28 @@ export type NavItem = {
 };
 
 export const CORE_NAV: NavItem[] = [
-  { key: "overview", href: "/dashboard", icon: LayoutDashboard, labelKey: "overview" },
-  {
-    key: "enterprise",
-    href: "/dashboard/enterprise",
-    icon: LineChart,
-    labelKey: "enterprise",
-  },
+  { key: "coachDashboard", href: "/dashboard", icon: LayoutDashboard, labelKey: "coachDashboard" },
 ];
+
+/** Technical modules hidden from coach navigation */
+export const COACH_HIDDEN_NAV_KEYS = new Set([
+  "enterprise",
+  "mobile-api",
+  "audit",
+  "backup",
+  "theme-builder",
+  "landing-builder",
+  "email-builder",
+  "automation-builder",
+  "voice-notes",
+  "multi-brand",
+  "franchise",
+  "security",
+]);
+
+export function filterCoachNav(items: NavItem[]): NavItem[] {
+  return items.filter((item) => !COACH_HIDDEN_NAV_KEYS.has(item.key));
+}
 
 const ENTERPRISE_ICONS: Record<string, LucideIcon> = {
   finance: Wallet,
@@ -109,12 +122,12 @@ const ENTERPRISE_ICONS: Record<string, LucideIcon> = {
 };
 
 export const MODULE_NAV: NavItem[] = [
-  { key: "programs", href: "/dashboard/programs", icon: Dumbbell, module: "PROGRAMS", labelKey: "programs" },
+  { key: "programs", href: "/dashboard/programs", icon: Dumbbell, module: "PROGRAMS", labelKey: "myPrograms" },
   { key: "meals", href: "/dashboard/meals", icon: UtensilsCrossed, module: "NUTRITION", labelKey: "meals" },
-  { key: "clients", href: "/dashboard/clients", icon: Users, labelKey: "clients" },
+  { key: "clients", href: "/dashboard/clients", icon: Users, labelKey: "myClients" },
   { key: "progress", href: "/dashboard/progress", icon: TrendingUp, labelKey: "progress" },
   { key: "recovery", href: "/dashboard/recovery", icon: Heart, module: "RECOVERY", labelKey: "recovery" },
-  { key: "bookings", href: "/dashboard/bookings", icon: BookOpen, module: "BOOKINGS", labelKey: "bookings" },
+  { key: "bookings", href: "/dashboard/bookings", icon: BookOpen, module: "BOOKINGS", labelKey: "myBookings" },
   { key: "calendar", href: "/dashboard/calendar", icon: Calendar, module: "BOOKINGS", labelKey: "calendar" },
   { key: "courses", href: "/dashboard/courses", icon: GraduationCap, module: "COURSES", labelKey: "courses" },
   { key: "digital-products", href: "/dashboard/digital-products", icon: Download, module: "DIGITAL_PRODUCTS", labelKey: "digitalProducts" },
@@ -127,14 +140,14 @@ export const MODULE_NAV: NavItem[] = [
   { key: "blog", href: "/dashboard/blog", icon: FileText, module: "BLOG", labelKey: "blog" },
   { key: "media", href: "/dashboard/media", icon: Image, labelKey: "media" },
   { key: "files", href: "/dashboard/files", icon: FolderOpen, labelKey: "files" },
-  { key: "payments", href: "/dashboard/payments", icon: CreditCard, labelKey: "payments" },
+  { key: "payments", href: "/dashboard/payments", icon: CreditCard, labelKey: "myRevenue" },
   { key: "coupons", href: "/dashboard/coupons", icon: Tag, labelKey: "coupons" },
   { key: "reports", href: "/dashboard/reports", icon: BarChart3, module: "REPORTS", labelKey: "reports" },
   { key: "ai", href: "/dashboard/ai", icon: Sparkles, module: "AI", labelKey: "ai" },
   { key: "automation", href: "/dashboard/automation", icon: Zap, module: "AUTOMATION", labelKey: "automation" },
   { key: "marketing", href: "/dashboard/marketing", icon: Megaphone, module: "MARKETING", labelKey: "marketing" },
   { key: "marketplace", href: "/dashboard/settings/marketplace", icon: Store, module: "MARKETPLACE", labelKey: "marketplace" },
-  { key: "website", href: "/dashboard/website", icon: Globe, labelKey: "website" },
+  { key: "website", href: "/dashboard/website", icon: Globe, labelKey: "coachWebsite" },
   ...listNavigableEnterprisePages().map((page) => ({
     key: page.slug,
     href: `/dashboard/enterprise/${page.slug}`,
@@ -145,10 +158,10 @@ export const MODULE_NAV: NavItem[] = [
 ];
 
 export const SETTINGS_NAV: NavItem[] = [
-  { key: "settings", href: "/dashboard/settings/subscription", icon: Settings, labelKey: "settings" },
+  { key: "businessSettings", href: "/dashboard/settings/subscription", icon: Settings, labelKey: "businessSettings" },
   { key: "branding", href: "/dashboard/settings/branding", icon: Palette, labelKey: "branding" },
-  { key: "domains", href: "/dashboard/settings/domains", icon: Globe, labelKey: "domains" },
-  { key: "security", href: "/dashboard/settings/security", icon: Lock, labelKey: "security" },
+  { key: "domains", href: "/dashboard/settings/domains", icon: Globe, labelKey: "coachWebsite" },
+  { key: "security", href: "/dashboard/settings/security", icon: Lock, labelKey: "coachProfile" },
 ];
 
 export function filterNavByModules(

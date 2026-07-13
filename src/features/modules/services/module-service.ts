@@ -46,7 +46,8 @@ export async function isModuleEnabled(
 export async function initializeTenantModules(
   tenantId: string,
   businessType?: Parameters<typeof getRecommendedModules>[0],
-  selectedModules?: TenantModuleKey[]
+  selectedModules?: TenantModuleKey[],
+  autoConfigure = false
 ) {
   const recommended = businessType
     ? getRecommendedModules(businessType)
@@ -56,7 +57,9 @@ export async function initializeTenantModules(
   const data = ALL_MODULE_KEYS.map((module) => ({
     tenantId,
     module,
-    isEnabled: toEnable.has(module) || MODULE_REGISTRY[module].defaultEnabled,
+    isEnabled: autoConfigure
+      ? toEnable.has(module)
+      : toEnable.has(module) || MODULE_REGISTRY[module].defaultEnabled,
   }));
 
   await db.tenantModuleConfig.createMany({ data, skipDuplicates: true });

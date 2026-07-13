@@ -10,16 +10,31 @@ import {
   MODULE_NAV,
   SETTINGS_NAV,
   filterNavByModules,
+  filterCoachNav,
 } from "@/features/coach-dashboard/config/nav-config";
 import type { TenantModuleKey } from "@prisma/client";
 import { Dumbbell, LogOut, Menu, X } from "lucide-react";
 import { useState, useMemo } from "react";
 
 const LABEL_FALLBACKS: Record<string, string> = {
-  enterprise: "Enterprise",
+  coachDashboard: "Coach Dashboard",
+  myClients: "My Clients",
+  myPrograms: "My Programs",
+  myBookings: "My Bookings",
+  myRevenue: "My Revenue",
+  coachWebsite: "Coach Website",
+  businessSettings: "Business Settings",
+  coachProfile: "Coach Profile",
   branding: "Branding",
-  domains: "Domains",
-  clients: "Clients",
+  domains: "Coach Website",
+  clients: "My Clients",
+  programs: "My Programs",
+  bookings: "My Bookings",
+  payments: "My Revenue",
+  website: "Coach Website",
+  settings: "Business Settings",
+  security: "Coach Profile",
+  overview: "Coach Dashboard",
   progress: "Progress",
   courses: "Courses",
   shop: "Shop",
@@ -57,7 +72,6 @@ const LABEL_FALLBACKS: Record<string, string> = {
   affiliate: "Affiliate",
   notifications: "Notifications",
   help: "Help Center",
-  security: "Security",
   "client-app": "Client App",
   "mobile-api": "Mobile API",
 };
@@ -73,11 +87,11 @@ export function DashboardSidebar({ enabledModules }: DashboardSidebarProps) {
 
   const navItems = useMemo(() => {
     const enabled = new Set(enabledModules);
-    return [
+    return filterCoachNav([
       ...CORE_NAV,
       ...filterNavByModules(MODULE_NAV, enabled),
       ...SETTINGS_NAV,
-    ];
+    ]);
   }, [enabledModules]);
 
   function label(key: string) {
@@ -99,7 +113,7 @@ export function DashboardSidebar({ enabledModules }: DashboardSidebarProps) {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Dumbbell className="h-4 w-4" />
         </div>
-        <span className="font-bold">TrainerOS</span>
+        <span className="font-bold">CoachOS</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-1">
