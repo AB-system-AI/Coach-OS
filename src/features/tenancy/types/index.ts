@@ -1,4 +1,5 @@
 import type { Tenant, TenantTheme, TenantSettings } from "@prisma/client";
+import { resolvePublicAppUrl } from "@/lib/env";
 
 export type TenantWithRelations = Tenant & {
   theme: TenantTheme | null;
@@ -108,7 +109,7 @@ export function isPlatformHost(host: string): boolean {
 }
 
 export function buildTenantUrl(slug: string, path = ""): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const base = resolvePublicAppUrl();
   return `${base}/${slug}${path}`;
 }
 

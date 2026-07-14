@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { resolveTenantFromSlug } from "@/features/tenancy";
+import { resolveTenantPublicUrl } from "@/lib/env";
 import {
   getPublicPrograms,
   getPublicBlogPosts,
@@ -15,10 +16,7 @@ export default async function sitemap({
   if (!resolved) return [];
 
   const { tenant } = resolved;
-  const baseUrl =
-    tenant.customDomain
-      ? `https://${tenant.customDomain}`
-      : `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/${slug}`;
+  const baseUrl = resolveTenantPublicUrl(slug, tenant.customDomain);
 
   const now = new Date();
 

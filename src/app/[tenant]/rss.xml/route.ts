@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveTenantFromSlug } from "@/features/tenancy";
+import { resolveTenantPublicUrl } from "@/lib/env";
 import { getPublicBlogPosts } from "@/features/website/services/public-site-service";
 
 export async function GET(
@@ -16,10 +17,7 @@ export async function GET(
   const { tenant } = resolved;
   const posts = await getPublicBlogPosts(tenant.id, 50);
 
-  const baseUrl =
-    tenant.customDomain
-      ? `https://${tenant.customDomain}`
-      : `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/${slug}`;
+  const baseUrl = resolveTenantPublicUrl(slug, tenant.customDomain);
 
   const items = posts
     .map(

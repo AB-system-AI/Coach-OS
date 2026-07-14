@@ -5,6 +5,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { resolveMetadataBase } from "@/lib/env";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,9 +29,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "CoachOS" }],
   creator: "CoachOS",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-  ),
+  metadataBase: resolveMetadataBase(),
   openGraph: {
     type: "website",
     locale: "en_US",

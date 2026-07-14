@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { resolveTenantFromSlug } from "@/features/tenancy";
+import { resolveTenantPublicUrl } from "@/lib/env";
 import {
   getPublicBlogPost,
   getRelatedBlogPosts,
@@ -51,7 +52,7 @@ export default async function BlogPostPage({ params }: Props) {
     3
   );
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/${tenantSlug}`;
+  const baseUrl = resolveTenantPublicUrl(tenantSlug, tenant.customDomain);
   const jsonLd = buildBlogPostJsonLd({
     title: post.title,
     description: post.excerpt ?? undefined,

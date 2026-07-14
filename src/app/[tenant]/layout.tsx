@@ -6,6 +6,7 @@ import { TenantThemeProvider } from "@/features/theme";
 import { JsonLd, buildLocalBusinessJsonLd } from "@/features/website/components/json-ld";
 import { NewsletterForm } from "@/features/website/components/newsletter-form";
 import { getHomePageStats } from "@/features/website/services/public-site-service";
+import { resolveMetadataBase, resolveTenantPublicUrl } from "@/lib/env";
 import type { Metadata } from "next";
 import {
   Facebook,
@@ -38,16 +39,19 @@ export async function generateMetadata({
     settings?.seoDescription ??
     theme?.heroSubtitle ??
     `${tenant.name} — Professional coaching services`;
-  const url =
-    tenant.customDomain
-      ? `https://${tenant.customDomain}`
-      : `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/${slug}`;
+  const url = resolveTenantPublicUrl(slug, tenant.customDomain);
 
   return {
     title: { default: title, template: `%s | ${tenant.name}` },
     description,
     keywords: settings?.seoKeywords ?? undefined,
-    metadataBase: new URL(url),
+    metadataBase: (() => {
+      try {
+        return new URL(url);
+      } catch {
+        return resolveMetadataBase();
+      }
+    })(),
     openGraph: {
       type: "website",
       title,
@@ -99,10 +103,7 @@ export default async function TenantWebsiteLayout({
 
   const stats = await getHomePageStats(tenant.id);
 
-  const baseUrl =
-    tenant.customDomain
-      ? `https://${tenant.customDomain}`
-      : `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/${slug}`;
+  const baseUrl = resolveTenantPublicUrl(slug, tenant.customDomain);
 
   const jsonLd = buildLocalBusinessJsonLd({
     name: tenant.name,

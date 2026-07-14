@@ -30,6 +30,14 @@ function normalizeOrigin(url: string): string {
   return url.replace(/\/$/, "");
 }
 
+/** Ensure a value is a valid absolute origin for `new URL()` and metadata. */
+export function toAbsoluteOrigin(url: string): string {
+  const trimmed = normalizeOrigin(url.trim());
+  if (!trimmed) return "http://localhost:3000";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 /** Prefer https for Vercel-provided hostnames (VERCEL_URL has no protocol). */
 function originFromHost(host: string): string {
   const trimmed = host.trim().replace(/\/$/, "");
@@ -117,7 +125,7 @@ export function resolveAuthUrl(): string {
     readRuntimeEnv("BETTER_AUTH_URL") || readRuntimeEnv("NEXT_PUBLIC_APP_URL");
 
   if (explicit) {
-    return normalizeOrigin(explicit);
+    return toAbsoluteOrigin(explicit);
   }
 
   const vercelProduction = readRuntimeEnv("VERCEL_PROJECT_PRODUCTION_URL");
@@ -149,8 +157,38 @@ export function resolveAuthUrl(): string {
 
 export function resolvePublicAppUrl(): string {
   const url = readRuntimeEnv("NEXT_PUBLIC_APP_URL");
-  if (url) return normalizeOrigin(url);
+  if (url) return toAbsoluteOrigin(url);
   return resolveAuthUrl();
+}
+
+/** Safe metadata base URL — never throws on malformed env configuration. */
+export function resolveMetadataBase(): URL {
+  try {
+    return new URL(resolvePublicAppUrl());
+  } catch (error) {
+    console.error("[CoachOS] Invalid public app URL for metadata:", error);
+    const platformDomain = readRuntimeEnv("NEXT_PUBLIC_PLATFORM_DOMAIN") ?? "coachos.app";
+    return new URL(`https://${platformDomain}`);
+  }
+}
+
+/** Public site URL for a coach tenant (subdomain in production). */
+export function resolveTenantPublicUrl(
+  slug: string,
+  customDomain?: string | null
+): string {
+  if (customDomain) {
+    return toAbsoluteOrigin(
+      customDomain.includes("://") ? customDomain : `https://${customDomain}`
+    );
+  }
+
+  if (isDevelopment()) {
+    return `${resolvePublicAppUrl()}/${slug}`;
+  }
+
+  const platformDomain = readRuntimeEnv("NEXT_PUBLIC_PLATFORM_DOMAIN") ?? "coachos.app";
+  return `https://${slug}.${platformDomain}`;
 }
 
 export type DeploymentEnvIssue = {

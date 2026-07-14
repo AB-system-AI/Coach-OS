@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { resolveTenantFromSlug } from "@/features/tenancy";
+import { resolveTenantPublicUrl } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import {
   getPublicProgram,
@@ -49,7 +50,7 @@ export default async function ProgramDetailPage({ params }: Props) {
     .filter((p) => p.id !== program.id)
     .slice(0, 3);
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/${slug}`;
+  const baseUrl = resolveTenantPublicUrl(slug, tenant.customDomain);
   const jsonLd = buildProgramJsonLd({
     name: program.name,
     description: program.description ?? undefined,
